@@ -1,0 +1,26 @@
+man9e:
+
+usba_hcdi - Update with all the types, probably should talk briefly
+about the usb_cr_t, usb_flags_t, usba_pipe_handle_data_t,
+usb_pipe_handle_t, usba_device_t, etc.
+
+usba_hcdi_pipe_open
+usba_hcdi_pipe_close
+usba_hcdi_pipe_reset
+usba_hcdi_pipe_reset_data_toggle
+usba_hcdi_pipe_ctrl_xfer
+usba_hcdi_bulk_transfer_size
+usba_hcdi_pipe_bulk_xfer
+usba_hcdi_pipe_intr_xfer
+usba_hcdi_pipe_stop_intr_polling
+usba_hcdi_pipe_isoc_xfer
+usba_hcdi_pipe_stop_isoc_polling
+
+*usba_hcdi_get_current_frame_number
+usba_hcdi_get_max_isoc_pkts
+
+usba_hcdi_hub_update
+
+man9s:
+
+usba_hcdi_ops
