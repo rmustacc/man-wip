@@ -14,6 +14,8 @@
 .Dd Sep 20, 2016
 .Dt USBA_HCDI_REGISTER_ARGS 9S
 .Os
+.Sh SYNOPSIS
+.In sys/usb/usba/hcdi.h
 .Sh NAME
 .Nm usba_hcdi_register_args ,
 .Nm usba_hcdi_register_args_t
@@ -45,12 +47,12 @@ see
 .Sh STRUCTURE MEMBERS
 The
 .Sy usba_hcdi_register_args_t
-function has the following members:
+structure has the following members:
 .Bd -literal -offset indent
-uint_t		usba_hcdi_register_version;
-dev_info_t	*usba_hcdi_register_dip;
-usba_hcdi_ops_t	*usba_hcdi_register_ops;
-ddi_dma_attr_t	*usba_hcdi_register_dma_attr;
+uint_t			usba_hcdi_register_version;
+dev_info_t		*usba_hcdi_register_dip;
+usba_hcdi_ops_t		*usba_hcdi_register_ops;
+ddi_dma_attr_t		*usba_hcdi_register_dma_attr;
 ddi_iblock_cookie_t	usba_hcdi_register_iblock_cookie;
 .Ed
 .Pp

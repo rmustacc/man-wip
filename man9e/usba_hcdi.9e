@@ -42,7 +42,28 @@ vector,
 .Xr usba_hcdi_ops 9S .
 These functions cover everything from initialization to performing I/O
 to USB devices on behalf of client device drivers.
-.Ss USB Background
+.Ss USB Speed and Version Background
+USB devices are often referred to in two different ways. The first way
+is the USB version that they conform to. In the wild this looks like USB
+1.1, USB 2.0, USB 3.0, etc.. However, devices are also referred to as
+'full-', 'low-', 'high-', and 'super-' speed devices.
+.Pp
+The latter description describes the maximum theoretical speed of a
+given device. For example, a super-speed device theoretically caps out
+around 5 Gbit/s, whereas a low-speed device caps out at 1.5 Mbit/s.
+.Pp
+In general, each speed usually corresponds to a specific USB protocol
+generation. For example, all USB 3.0 devices are super-speed devices.
+All 'high-speed' devices are USB 2.x devices. Full-speed devices are
+special in that they can either be USB 1.x or USB 2.x devices. Low-speed
+devices are only a USB 1.x thing, they did not jump the fire line to USB
+2.x.
+.Pp
+USB 3.0 devices and ports generally have the wiring for both USB 2.0 and
+USB 3.0. When a USB 3.0 device is plugged into a USB 2.0 port or hub,
+then it will report its version as USB 2.1, to indicate that it is
+actually a USB 3.0 device.
+.Ss USB Endpoint Background
 To understand the organization of the functions that make up the hcdi
 operations vector, it helps to understand how USB devices are organized
 and work at a high level.
@@ -340,14 +361,18 @@ The device driver should implement an
 entry point that obtains access to its
 .Sy dev_info_t
 and then calls
-.Xr usba_hubdi_open 9F .
+.Xr usba_hubdi_open 9F . See
+.Xr usba_cb_open 9E
+for more information.
 .It Sy cb_close
 The device driver should implement a
 .Xr close 9E
 entry point that obtains access to its
 .Sy dev_info_t
 and then calls
-.Xr usba_hubdi_close 9F .
+.Xr usba_hubdi_close 9F . See
+.Xr usba_cb_close 9E
+for more information.
 .It Sy cb_ioctl
 The device driver should implement a
 .Xr ioctl 9E
@@ -364,6 +389,10 @@ Because the
 function normally takes care of checking for the proper privileges,
 device drivers must verify that a caller has appropriate privileges
 before processing any private ioctls.
+.Pp
+See
+.Xr usba_cb_ioctl 9E
+for more information.
 .It Sy cb_prop_op
 The
 .Sy cb_prop_op
@@ -407,6 +436,19 @@ vectors.
 Outside of that constraint, the device driver should perform locking of
 its data structures. It should assume that many of its entry points will
 be called in parallel across the many devices that exist.
+.Pp
+There are certain occasions where a device driver may have to enter the
+.Sy p_mutex
+member of the
+.Xr usba_pipe_handle_data 9S
+structure when duplicating isochronous or interrupt requests. The USBA
+should in general, not hold this lock across calls to the HCD driver,
+and in turn, the HCD driver should not hold this lock across any calls
+back to the USBA. As such, the HCD driver should make sure to
+incorporate the lock ordering of this mutex into its broader lock
+ordering and operational theory. Generally, the
+.Sy p_mutex
+mutex will be entered after any HCD-specific locks.
 .Pp
 The final recommendation is that due to the fact that the host
 controller driver provides services to a multitude of USB devices at
@@ -468,6 +510,24 @@ attribute is set, then the driver should return
 .Pp
 Otherwise, this represents a request to begin polling on the status
 endpoint for a hub. This is a periodic request, see the section
+.Sx Device Addressing
+Every USB device has an address assigned to it. The addresses assigned
+to each controller are independent. The root hub of a given controller
+always has an address of
+.Dv ROOT_HUB_ADDR .
+.Pp
+In general, addresses are assigned by the USBA and stored in the
+.Sy usb_addr
+member of a
+.Xr usba_device_t 9S .
+However, some controllers, such as xHCI, require that they control the
+device addressing themselves to facilitate their functionality. In such
+a case, the USBA still assigns every device an address; however, the
+actual address on the bus will be different and assigned by the HCD
+driver.  An HCD driver that needs to address devices itself must
+implement the
+.Xr usba_hcdi_device_address 9E
+entry point.
 .Sx Endpoint Polling
 more on the semantics of polling and periodic requests.
 .Pp
