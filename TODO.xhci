@@ -1,26 +1,14 @@
 man9e:
 
-usba_hcdi - Update with all the types, probably should talk briefly
-about the usb_cr_t, usb_flags_t, usba_pipe_handle_data_t,
-usba_device_t, etc.
+usba_hcdi - Add a section pointing to all the types and structures we've
+documented.
 
-usba_cb_open
-usba_cb_close
-usba_cb_ioctl
-
-usba_hcdi_pipe_open
-usba_hcdi_pipe_close
 usba_hcdi_pipe_reset
+
 usba_hcdi_pipe_ctrl_xfer
-usba_hcdi_bulk_transfer_size
 usba_hcdi_pipe_bulk_xfer
 usba_hcdi_pipe_intr_xfer
-usba_hcdi_pipe_stop_intr_polling
 usba_hcdi_pipe_isoc_xfer
-usba_hcdi_pipe_stop_isoc_polling
-
-usba_hcdi_device_address
-usba_hcdi_hub_update
 
 XXX
 

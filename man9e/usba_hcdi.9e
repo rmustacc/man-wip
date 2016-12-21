@@ -362,7 +362,7 @@ entry point that obtains access to its
 .Sy dev_info_t
 and then calls
 .Xr usba_hubdi_open 9F . See
-.Xr usba_cb_open 9E
+.Xr usba_hcdi_cb_open 9E
 for more information.
 .It Sy cb_close
 The device driver should implement a
@@ -371,7 +371,7 @@ entry point that obtains access to its
 .Sy dev_info_t
 and then calls
 .Xr usba_hubdi_close 9F . See
-.Xr usba_cb_close 9E
+.Xr usba_hcdi_cb_close 9E
 for more information.
 .It Sy cb_ioctl
 The device driver should implement a
@@ -391,7 +391,7 @@ device drivers must verify that a caller has appropriate privileges
 before processing any private ioctls.
 .Pp
 See
-.Xr usba_cb_ioctl 9E
+.Xr usba_hcdi_cb_ioctl 9E
 for more information.
 .It Sy cb_prop_op
 The
@@ -684,6 +684,9 @@ file.
 .Xr ioctl 9E ,
 .Xr open 9E ,
 .Xr usba_hcdi_bulk_xfer 9E ,
+.Xr usba_hcdi_cb_close 9E ,
+.Xr usba_hcdi_cb_ioctl 9E ,
+.Xr usba_hcdi_cb_open 9E ,
 .Xr usba_hcdi_pipe_bulk_xfer 9E ,
 .Xr usba_hcdi_pipe_ctrl_xfer 9E ,
 .Xr usba_hcdi_pipe_intr_xfer 9E ,

@@ -21,13 +21,13 @@
 .Sh SYNOPSIS
 .In sys/usb/usba/hcdi.h
 .Ft int
-.Fo usba_hcdi_device_init
+.Fo prefix_hcdi_device_init
 .Fa usba_device_t *usb_device
 .Fa usb_port_t port
 .Fa void **hcd_privatep
 .Fc
 .Ft void
-.Fo usba_hcdi_device_fini
+.Fo prefix_hcdi_device_fini
 .Fa usba_device_t *usb_device
 .Fa usb_port_t port
 .Fa void *hcd_private
@@ -38,7 +38,7 @@ illumos USB HCD private function
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.
-.Sh PARAMETESR
+.Sh PARAMETERS
 .Bl -tag -width Fa
 .It Fa usb_device
 Pointer to a USB device structure.

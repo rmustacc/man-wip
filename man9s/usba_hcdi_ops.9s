@@ -159,9 +159,7 @@ The
 .Sy usba_hcdi_bulk_transfer_size
 member should be a set to a function which can return the maximum amount
 of data that can be performed in a given USB transfer for a bulk
-transfer. See
-.Xr usba_hcdi_bulk_transfer_size 9E
-for more information.
+transfer.
 .Pp
 The
 .Sy usba_hcdi_pipe_bulk_xfer
@@ -294,7 +292,6 @@ for more information.
 .Xr cfgadm 1M ,
 .Xr attach 9E ,
 .Xr usba_hcdi 9E ,
-.Xr usba_hcdi_bulk_transfer_size 9E ,
 .Xr usba_hcdi_device_address 9E ,
 .Xr usba_hcdi_device_fini 9E ,
 .Xr usba_hcdi_device_init 9E ,
