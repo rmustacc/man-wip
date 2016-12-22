@@ -457,6 +457,45 @@ for I/O to complete, such as an issued command. This is particularly
 true if the device driver uses coarse grained locking. If the device
 driver does not pay attention to these conditions, it can easily lead to
 service stalls.
+.Ss Synchronous and Asynchronous Entry Points
+The majority of the entry points that a host controller driver has to
+implement are
+.Em synchronous .
+All actions that the entry point implies must be completed before the
+entry point returns. However, the various transfer routines:
+.Xr usba_hcdi_pipe_bulk_xfer 9E ,
+.Xr usba_hcdi_pipe_ctrl_xfer 9E ,
+.Xr usba_hcdi_pipe_intr_xfer 9E ,
+and
+.Xr usba_hcdi_pipe_isoc_xfer 9E ,
+are ultimately
+.Em asynchronous
+entry points.
+.Pp
+Each of the above entry points begins one-shot or periodic I/O. When the
+driver returns
+.Sy USB_SUCCESS
+from one of those functions, it is expected that it will later call
+.Xr usba_hcdi_cb 9F
+when the I/O completes, whether successful or not. It is the driver's
+responsibility to keep track of these outstanding transfers and time
+them out. For more information on timeouts, see the section
+.Sx Endpoint Timeouts .
+.Pp
+If for some reason, the driver fails to initialize the I/O transfer and
+indicates this by returning a value other than
+.Sy USB_SUCCESS
+from its entry point, then it must not call
+.Xr usba_hcdi_cb 9F
+for that transfer.
+.Ss Short Transfers
+Not all USB transfers will always return the full amount of data
+requested in the transfer. Host controller drivers need to be ready for
+this and report it. Each request structure has an attribute to indicate
+whether or not short transfers are OK. If a short transfer is OK, then
+the driver should update the transfer length. Otherwise, it should
+instead return an error. See the individual entry point pages for more
+information.
 .Ss Root Hub Management
 As was mentioned earlier, every host controller is also a root hub. The
 USBA interfaces with the root hub no differently than any other hub. The
@@ -671,6 +710,7 @@ Due to the way host controller drivers need to interact with hotplug,
 drivers should generally set the
 .Sy ddi-forceattach
 property to one in their
+.Ss Notable Types and Structures
 .Xr driver.conf 4
 file.
 .Sh SEE ALSO

@@ -3,10 +3,6 @@ man9e:
 usba_hcdi - Add a section pointing to all the types and structures we've
 documented.
 
-usba_hcdi_pipe_reset
-
-usba_hcdi_pipe_ctrl_xfer
-usba_hcdi_pipe_bulk_xfer
 usba_hcdi_pipe_intr_xfer
 usba_hcdi_pipe_isoc_xfer
 
