@@ -46,7 +46,7 @@ to USB devices on behalf of client device drivers.
 USB devices are often referred to in two different ways. The first way
 is the USB version that they conform to. In the wild this looks like USB
 1.1, USB 2.0, USB 3.0, etc.. However, devices are also referred to as
-'full-', 'low-', 'high-', and 'super-' speed devices.
+.No 'full-', 'low-', 'high-', and 'super-' speed devices.
 .Pp
 The latter description describes the maximum theoretical speed of a
 given device. For example, a super-speed device theoretically caps out
@@ -763,6 +763,7 @@ This is a set of codes that may be returned as a part of the call to
 .Xr usb_hcdi_cb 9F .
 The best place for the full set of these is currently in the source
 control headers.
+.El
 .El
 .Ss Interrupts
 While some hardware supports more than one interrupt queue, a single

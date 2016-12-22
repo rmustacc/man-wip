@@ -14,12 +14,12 @@
 .Dd Dec 20, 2016
 .Dt USBA_PIPE_HANDLE_DATA 9S
 .Os
-.Sh SYNOPSIS
-.In sys/usb/usba/hcdi.h
 .Sh NAME
 .Nm usba_pipe_handle_data
 .Nm usba_pipe_handle_data_t
 .Nd USBA Pipe Handle Data Structure
+.Sh SYNOPSIS
+.In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
 illumos USB HCD private

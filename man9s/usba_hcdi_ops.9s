@@ -14,12 +14,12 @@
 .Dd Dec 20, 2016
 .Dt USBA_HCDI_OPS 9S
 .Os
-.Sh SYNOPSIS
-.In sys/usb/usba/hcdi.h
 .Sh NAME
 .Nm usba_hcdi_ops ,
 .Nm usba_hcdi_ops_t
 .Nd USBA host controller driver operations vector
+.Sh SYNOPSIS
+.In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
 illumos USB HCD private

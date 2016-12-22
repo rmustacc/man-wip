@@ -12,7 +12,7 @@
 .\" Copyright 2016 Joyent, Inc.
 .\"
 .Dd Dec 22, 2016
-.Dt USBA_HCDI_PIPE_ISOC_XFER
+.Dt USBA_HCDI_PIPE_ISOC_XFER 9E
 .Os
 .Sh NAME
 .Nm usba_hcdi_pipe_isoc_xfer
@@ -54,6 +54,7 @@ will wait until memory is made available.
 Note, the request may still fail even if
 .Sy USB_FLAGS_SLEEP
 is specified.
+.El
 .El
 .Sh DESCRIPTION
 The

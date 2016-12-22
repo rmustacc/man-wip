@@ -14,14 +14,12 @@
 .Dd Sep 20, 2016
 .Dt USBA_HCDI_REGISTER_ARGS 9S
 .Os
-.Sh SYNOPSIS
-.In sys/usb/usba/hcdi.h
 .Sh NAME
 .Nm usba_hcdi_register_args ,
 .Nm usba_hcdi_register_args_t
 .Nd USB HCD driver registeration
 .Sh SYNOPSIS
-.In sys/usba/hcdi.h
+.In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
 illumos USB HCD private

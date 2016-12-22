@@ -56,6 +56,7 @@ Note, the request may still fail even if
 .Sy USB_FLAGS_SLEEP
 is specified.
 .El
+.El
 .Sh DESCRIPTION
 The
 .Fn usba_hcdi_pipe_stop_intr_polling

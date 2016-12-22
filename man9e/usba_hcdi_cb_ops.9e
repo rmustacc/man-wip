@@ -87,7 +87,7 @@ and
 The arguments between the two types of functions are slightly different.
 The
 .Sx EXAMPLES
-section provides a sketch for how most HCD drivers should perform those 
+section provides a sketch for how most HCD drivers should perform those
 transformations.
 .Pp
 One important distinction from the traditional character routines is
@@ -213,8 +213,7 @@ _fini(void)
 
 	return (0);
 }
-
-.El
+.Ed
 .Sh SEE ALSO
 .Xr xhci 7D ,
 .Xr attach 9E ,

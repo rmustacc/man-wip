@@ -11,11 +11,13 @@
 .\"
 .\" Copyright 2016 Joyent, Inc.
 .\"
-.Dt Dec 22, 2016
+.Dd Dec 22, 2016
 .Dt USBA_HCDI_PIPE_RESET 9E
 .Os
 .Sh NAME
-.Sy SYNOPSIS
+.Nm usba_hcdi_pipe_rest
+.Nd reset an open USB pipe
+.Sh SYNOPSIS
 .In sys/usb/usba/hcdi.h
 .Ft int
 .Fo prefix_hcdi_pipe_reset
@@ -48,6 +50,7 @@ Note, the request may still fail even if
 .Sy USB_FLAGS_SLEEP
 is specified.
 .El
+.El
 .Sh DESCRIPTION
 The
 .Fn usba_hcdi_pipe_reset
@@ -72,7 +75,7 @@ Remove any remaining, scheduled or queued transfers. For each one call
 .Xr usba_hcdi_cb 9F
 with the code
 .Sy USB_CR_PIPE_RESET .
-.I
+.It
 Perform any other necessary steps on the controller to have the endpoint
 be ready to perform I/O.
 .El

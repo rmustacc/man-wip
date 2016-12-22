@@ -14,12 +14,12 @@
 .Dd Dec 20, 2016
 .Dt USBA_DEVICE 9S
 .Os
-.Sh SYNOPSIS
-.In sys/usb/usba/hcdi.h
 .Sh NAME
 .Nm usba_device ,
 .Nm usba_device_t
 .Nd USBA Device Data Structure
+.Sh SYNOPSIS
+.In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
 illumos USB HCD private
