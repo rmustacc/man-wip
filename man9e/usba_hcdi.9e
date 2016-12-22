@@ -700,6 +700,70 @@ then if it reaches zero, interject and stop the endpoint and clean up.
 .Pp
 This has the added benefit that when no I/O is scheduled, then there
 will be no timer activity, reducing overall system load.
+.Ss Notable Types and Structures
+The following are data structures and types that are used throughout
+host controller drivers:
+.Bl -tag -width Vt
+.It Sy usb_cfg_descr
+The configuration descriptor. A device may have one or more
+configurations that it supports that can be switched between. The
+descriptor is documented in
+.Xr usb_cfg_descr 9S .
+.It Sy usb_dev_descr
+The device descriptor. A device descriptor basic properties of the
+device such as the USB version, device and vendor information, and the
+maximum packet size. This will often be used when setting up a device
+for the first time. It is documented in
+.Xr usb_dev_descr 9S .
+.It Sy usb_ep_descr
+.It Sy usb_xep_descr
+.It Sy usb_bulk_req
+This structure is filled out by client device drivers that want to make
+a bulk transfer request. Host controllers use this and act on it to
+perform bulk transfers to USB devices. The structure is documented in
+.Xr usb_bulk_req 9S .
+.It Sy usb_ctrl_req
+This structure is filled out by client device drivers that want to make
+a control transfer request. Host controllers use this and act on it to
+perform bulk transfers to USB devices. The structure is documented in
+.Xr usb_ctrl_req 9S .
+.It Sy usb_intr_req
+This structure is filled out by client device drivers that want to make
+an interrupt transfer request. Host controllers use this and act on it to
+perform bulk transfers to USB devices. The structure is documented in
+.Xr usb_intr_req 9S .
+.It Sy usb_isoc_req
+This structure is filled out by client device drivers that want to make
+an isochronous transfer request. Host controllers use this and act on it to
+perform bulk transfers to USB devices. The structure is documented in
+.Xr usb_isoc_req 9S .
+.It Vt usb_flags_t
+These define a set of flags that are used on certain entry points. These
+generally determine whether or not the entry points should block for
+memory allocation. Individual manual pages indicate the flags that
+drivers should consult.
+.It Vt usb_port_status_t
+The
+.Sy usb_port_status_t
+determines the current negotiated speed of the device. The following are
+valid values that this may be:
+.Bl -tag -width Sy
+.It Sy USBA_LOW_SPEED_DEV
+The device is running as a low speed device. This may be a USB 1.x or
+USB 2.0 device.
+.It Sy USBA_FULL_SPEED_DEV
+The device is running as a full speed device. This may be a USB 1.x or
+USB 2.0 device.
+.It Sy USBA_HIGH_SPEED_DEV
+The device is running as a high speed device. This is a USB 2.x device.
+.It Sy USBA_SUPER_SPEED_DEV
+The device is running as a super speed device. This is a USB 3.0 device.
+.It Vt usb_cr_t
+This is a set of codes that may be returned as a part of the call to
+.Xr usb_hcdi_cb 9F .
+The best place for the full set of these is currently in the source
+control headers.
+.El
 .Ss Interrupts
 While some hardware supports more than one interrupt queue, a single
 interrupt is generally sufficient for most host controllers. If the
@@ -710,7 +774,6 @@ Due to the way host controller drivers need to interact with hotplug,
 drivers should generally set the
 .Sy ddi-forceattach
 property to one in their
-.Ss Notable Types and Structures
 .Xr driver.conf 4
 file.
 .Sh SEE ALSO

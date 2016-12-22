@@ -129,7 +129,7 @@ For asynchronous requests, the controller is also responsible for
 timing out the request if it does not complete. If the timeout in the
 request as indicated in the
 .Sy ctrl_timeout
-member is set to zero, then the controller should use the USBA default
+member is set to zero, then the driver should use the USBA default
 timeout of
 .Sy HCDI_DEFAULT_TIMEOUT .
 All timeout values are in
@@ -137,7 +137,7 @@ All timeout values are in
 .Ss Callback Handling
 When the control transfer completes the driver should consider the
 following items to determine what actions it should take on the callback:
-.Bl -enum
+.Bl -bullet
 .It
 If the transfer timed out, it should remove the transfer from the
 outstanding list, queue the next transfer, and return the transfer back
