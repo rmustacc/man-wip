@@ -44,10 +44,10 @@ The
 .Fn usba_alloc_hcdi_ops
 function allocates a
 .Xr usba_hcdi_ops_t 9S
-structure for use for a USB HCD driver. As part of initialization, a USB
-HCD driver will allocate this and fill it in. For more information on
-the full lifetime of the object and when a USB HCD driver should release
-the structure, see
+structure for use for a USB host controller driver (HCD). As part of
+initialization, a USB HCD will allocate this and fill it in. For more
+information on the full lifetime of the object and when a USB HCD should
+release the structure, see
 .Xr usba_hcdi 9E .
 .Pp
 The
@@ -61,7 +61,7 @@ Only pointers received from a call to the
 function should be passed to this function.
 .Sh CONTEXT
 These functions are generally called from kernel context during a USB
-HCD driver's
+host controller driver's
 .Xr attach 9E
 and
 .Xr detach 9E

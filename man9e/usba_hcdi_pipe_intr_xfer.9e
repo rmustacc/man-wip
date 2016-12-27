@@ -27,7 +27,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.
@@ -45,8 +45,8 @@ Flags which describe how allocations should be performed. Valid flags
 are:
 .Bl -tag -width Sy
 .It Sy USB_FLAGS_NOSLEEP
-Do not block waiting for memory. If memory is not the allocation will
-fail.
+Do not block waiting for memory. If memory is not available the
+allocation will fail.
 .It Sy USB_FLAGS_SLEEP
 Perform a blocking allocation. If memory is not available, the function
 will wait until memory is made available.
@@ -106,11 +106,10 @@ and
 .Sy intr_data
 members of
 .Fa uirp
-respectively.
- The
+respectively. The
 .Xr mblk 9S
-structure that should not be used directly and data should be copied to
-or from the data buffer that will go the controller.
+structure should not be used directly in the I/O transfer. Data should
+be copied to or from the data buffer that will go the controller.
 .Pp
 Unlike bulk and control transfers, the
 .Fa intr_data

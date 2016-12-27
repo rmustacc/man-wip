@@ -78,7 +78,7 @@ function, the driver will receive no more function calls to its
 entry points.
 .Pp
 For more information on the initialization and finalization path of a
-USB HCD driver, see
+USB host controller driver, see
 .Xr usba_hcdi 9E .
 .Sh CONTEXT
 The

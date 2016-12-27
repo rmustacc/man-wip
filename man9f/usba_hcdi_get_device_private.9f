@@ -37,17 +37,18 @@ Pointer to a USB device.
 .Sh DESCRIPTION
 The
 .Fn usba_hcdi_get_device_private
-function obtains the private data set by a HCD driver. This private data
-is created by the HCD driver's optional entry point
+function obtains the private data set by a host controller driver (HCD).
+This private data is created by the host controller driver's optional
+entry point
 .Xr usba_hcdi_device_init 9E
-and is removed during the HCD driver's optional entry point
+and is removed during the host controller driver's optional entry point
 .Xr usba_hcdi_device_fini 9E .
-If an HCD driver does not implement these entry points then the value
+If an HCD does not implement these entry points then the value
 obtained by a call will always be the null pointer,
 .Dv NULL .
 .Pp
 The framework provides no form of locking of this data and it is up to
-the HCD driver to use whatever synchronization primitives it requires if
+the HCD to use whatever synchronization primitives it requires if
 needed.
 .Sh CONTEXT
 The
@@ -56,7 +57,7 @@ function is generally called from the context of a
 .Xr usba_hcdi 9E
 entry point, but may be called from user, kernel, or interrupt context.
 .Sh RETURN VALUES
-The private data set by an HCD driver is always returned. If no such
+The private data set by an HCD is always returned. If no such
 value has been set, then
 .Dv NULL
 is returned.

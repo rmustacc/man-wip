@@ -73,8 +73,9 @@ The
 .Fn usba_hubdi_ioctl ,
 and
 .Fn usba_hubdi_close
-functions are functions provided for the implementation of USB HCD
-drivers. USB HCD drivers are required to implemnt the
+functions are functions provided for the implementation of USB host
+controller drivers (HCD). USB host controller drivers are required to
+implemnt the
 .Xr open 9E ,
 .Xr ioctl 9E ,
 and
@@ -87,15 +88,15 @@ or
 .Fa dev
 to determine the device's corresponding
 .Sy dev_info_t .
-The USB HCD driver's entry points should then call the corresponding
-function described above, passing all the arguments they received
-unmodified.
+The USB host controller driver's entry points should then call the
+corresponding function described above, passing all the arguments they
+received unmodified.
 .Pp
-The USB HCD driver's entry points should return the value returned by
-the call to the corresponding USBA function.
+The USB host controller driver's entry points should return the value
+returned by the call to the corresponding USBA function.
 .Sh CONTEXT
-These functions should only be called from the context of a USB HCD
-driver's
+These functions should only be called from the context of a USB host
+controller driver's
 .Xr open 9E ,
 .Xr ioctl 9E ,
 and

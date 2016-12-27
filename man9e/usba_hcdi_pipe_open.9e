@@ -32,7 +32,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.
@@ -46,8 +46,8 @@ Flags which describe how allocations should be performed. Valid flags
 are:
 .Bl -tag -width Sy
 .It Sy USB_FLAGS_NOSLEEP
-Do not block waiting for memory. If memory is not the allocation will
-fail.
+Do not block waiting for memory. If memory is not available the
+allocation will fail.
 .It Sy USB_FLAGS_SLEEP
 Perform a blocking allocation. If memory is not available, the function
 will wait until memory is made available.
@@ -75,7 +75,7 @@ cleaning up any resources that were allocated during the open call.
 .Pp
 The pipe handle,
 .Fa ph ,
-identifies the endpoint that it the USBA is trying to open or close
+identifies the endpoint that the USBA is trying to open or close
 through its endpoint descriptor in the
 .Sy p_ep
 member. The endpoint descriptor is described in
@@ -96,7 +96,7 @@ Host controller drviers should check the USB address of the
 USB device that
 .Fa ph
 belongs to. The driver may be asked to open a pipe to the root hub. As
-the root hub is often sythetic, the driver man need to take a different
+the root hub is often sythetic, the driver may need to take a different
 path than normal.
 .Ss Pipe open specifics
 A given endpoint on a device can only be opened once. If there's a
@@ -117,7 +117,7 @@ clear the data when the pipe is closed.
 .Ss Pipe close specifics
 When a pipe is closed, the driver must clean up all of the resources
 that it allocated when opening the pipe. For non-periodic transfers, the
-host controller driver may assueme that there are no outstanding
+host controller driver may assume that there are no outstanding
 transfers that need to be cleaned up. However, the same is not true for
 periodic pipes.
 .Pp

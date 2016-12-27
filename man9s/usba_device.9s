@@ -22,7 +22,7 @@
 .In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private
+illumos USB HCD private structure
 .Pp
 This is a private data structure that is not part of the stable DDI. It
 may be removed or changed at any time.
@@ -36,14 +36,14 @@ be a single device structure.  A USB device is always plugged into a
 port on some hub, excepting the root hub, and has an address on the USB
 fabric.
 .Pp
-Many of the USB HCD driver operations pass a
+Many of the USB host controller driver (HCD) operations pass a
 .Sy usba_device_t
-to the HCD driver. The
+to the host controller driver. The
 .Sy usba_device_t
-should be used by an HCD driver in a
+should be used by a host controller driver in a
 .Em read-only
-fashion. A subset of the structure's fields that are useful for HCD
-drivers to read are listed below.
+fashion. A subset of the structure's fields that are useful for host
+controller drivers to read are listed below.
 .Pp
 In addition, there are two optional HCD entry points that interact with
 this structure and give the change for a driver to store per-device
@@ -77,9 +77,10 @@ The
 .Sy usb_dip
 member is a pointer to the device's
 .Sy dev_info_t
-structure. This generally is used if the HCD driver wants to get naming
+structure. This generally is used if the HCD wants to get naming
 information for diagnostic purposes. When duplicating requests for
-isochronous and interrupt requests, HCD drivers should use the
+isochronous and interrupt requests, host controller drivers should use
+the
 .Sy dev_info_t
 from the
 .Xr usba_pipe_handle_data_t 9S .
@@ -88,17 +89,18 @@ The
 .Sy usb_hubdi
 member can be used to determine whether or not the
 .Sy usba_device_t
-in question is a hub or not. HCD drivers should compare this member to
+in question is a hub or not. Host controller drivers should compare this
+member to
 .Dv NULL .
 If the member is not
 .Dv NULL ,
 then this USB device corresponds to a hub.
 .Pp
-the
+The
 .Sy usb_addr
 member indicates the address of the USB device on the broader USB bus.
 Note, that the actual address assigned to the device may be different,
-especially if the HCD driver implements the optional
+especially if the HCD implements the optional
 .Xr usba_hcdi_device_address 9E
 entry point. See the section
 .Sy USB addressing
@@ -116,7 +118,7 @@ This member may be
 as it may not have been populated during device
 attachment. This member may be
 .Dv NULL .
-HCD drivers should always check for
+Host controller drivers should always check for
 .Dv NULL
 before dereferencing it.
 .Pp
@@ -125,7 +127,7 @@ The
 member may contain a pointer to a character string with the name of the
 manufacturer as retrieved from the device. This member may be
 .Dv NULL .
-HCD drivers should always check for
+Host controller drivers should always check for
 .Dv NULL
 before dereferencing it.
 .Pp
@@ -134,7 +136,7 @@ The
 member may contain a pointer to a character string with the name of the
 product as retrieved from the device. This member may be
 .Dv NULL .
-HCD drivers should always check for
+Host controller drivers should always check for
 .Dv NULL
 before dereferencing it.
 .Pp
@@ -143,7 +145,7 @@ The
 member may contain a pointer to a character string with the serial
 number of the device as retrieved from the device. This member may be
 .Dv NULL .
-HCD drivers should always check for
+Host controller drivers should always check for
 .Dv NULL
 before dereferencing it.
 .Pp

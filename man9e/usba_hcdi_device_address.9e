@@ -17,7 +17,7 @@
 .Sh NAME
 .Nm usba_hcdi_device_address
 .Nd Assign USB address to device
-.Sy SYNOPSIS
+.Sh SYNOPSIS
 .In sys/usb/usba/hcdi.h
 .Ft int
 .Fo prefix_hcdi_device_address
@@ -25,7 +25,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.
@@ -39,13 +39,13 @@ for more information.
 .Sh DESCRIPTION
 The
 .Fn usba_hcdi_device_address
-entry point is an optional entry point for USB host controller drivers.
-Some USB host controllers do not allow the USB SET_ADDRESS command to be
-issued to a device. Instead, they will be responsible for setting the
-address in a controller-specific way. If the host controller driver
-requires this behavior, then it must implement this function. Otherwise,
-if the host controller does not require this functionality, it should
-set the entry point in the
+entry point is an optional entry point for USB host controller drivers
+(HCD).  Some USB host controllers do not allow the USB SET_ADDRESS
+command to be issued to a device. Instead, they will be responsible for
+setting the address in a controller-specific way. If the host controller
+driver requires this behavior, then it must implement this function.
+Otherwise, if the host controller does not require this functionality,
+it should set the entry point in the
 .Xr usba_hcdi_ops 9S
 structure to
 .Dv NULL .

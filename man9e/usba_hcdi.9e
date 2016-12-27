@@ -21,7 +21,7 @@
 .In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This describes private interfaces that are not part of the stable DDI.
 This may be removed or changed at any time.
@@ -30,7 +30,8 @@ This may be removed or changed at any time.
 drivers are device drivers that support USB host controller hardware.
 USB host controllers provide an interface between the operating system
 and USB devices. They abstract the interface to the devices, often
-provide ways of performing DMA, and also act as the root hub.
+provide ways of performing DMA, and also act as the root hub. These
+drivers are call host controller drivers (HCD).
 .Pp
 .Sy hcdi
 drivers are part of the illumos USB Architecture (USBA). The
@@ -44,7 +45,7 @@ These functions cover everything from initialization to performing I/O
 to USB devices on behalf of client device drivers.
 .Ss USB Speed and Version Background
 USB devices are often referred to in two different ways. The first way
-is the USB version that they conform to. In the wild this looks like USB
+is the USB version that they conform to. This generally looks like USB
 1.1, USB 2.0, USB 3.0, etc.. However, devices are also referred to as
 .No 'full-', 'low-', 'high-', and 'super-' speed devices.
 .Pp
@@ -56,8 +57,7 @@ In general, each speed usually corresponds to a specific USB protocol
 generation. For example, all USB 3.0 devices are super-speed devices.
 All 'high-speed' devices are USB 2.x devices. Full-speed devices are
 special in that they can either be USB 1.x or USB 2.x devices. Low-speed
-devices are only a USB 1.x thing, they did not jump the fire line to USB
-2.x.
+devices only supported in USB 1.x.
 .Pp
 USB 3.0 devices and ports generally have the wiring for both USB 2.0 and
 USB 3.0. When a USB 3.0 device is plugged into a USB 2.0 port or hub,
@@ -73,11 +73,12 @@ A given USB device is made up of
 A request, or transfer, is made to a specific USB endpoint. These
 endpoints can provide different services and have different expectations
 around the size of the data that'll be used in a given request and the
-periodicity of requests. Endpoints themselves are either used to make
-one-shot requests, for example, making requests to a mass storage device
-for a given sector, or for making periodic requests where you end up
-polling on the endpoint, for example, polling on a USB keyboard for
-keystrokes.
+periodicity of requests. Endpoints operate in one of two modes: one-shot
+requests and periodic requests. With periodic requests, while only one
+request is made, the caller will get multiple, independent data
+callbacks. Making a request to a mass storage device is an example of a
+one-shot request. While polling on a USB keyboard for keystrokes is an
+example of a periodic request.
 .Pp
 Each endpoint encodes two different pieces of information: a direction
 and a type. There are two different directions: IN and OUT. These refer
@@ -90,7 +91,7 @@ There are four different kinds of endpoints:
 .Bl -tag -width Sy -offset indent
 .It Sy BULK
 These transfers are large transfers of data to or from a device.  The
-most common use for bulk transfers is for mass storage devices.  Though
+most common use for bulk transfers is for mass storage devices, though
 they are often also used by network devices and more. Bulk endpoints do
 not have an explicit time component to them. They are always used for
 one-shot transfers.
@@ -98,8 +99,9 @@ one-shot transfers.
 These transfers are used to manipulate devices themselves and are used
 for USB protocol level operations (whether device-specific,
 class-specific, or generic across all of USB). Unlike other transfers,
-control transfers are always bi-directional and use different kinds of
-transfers.
+control transfers are always bi-directional and a control endpoint may
+both send and receive data. Every device has a default control endpoint,
+which is endpoint number 0.
 .It Sy INTERRUPT
 Interrupt transfers are used for small transfers that happen
 infrequently, but need reasonable latency. A good example of interrupt
@@ -189,7 +191,7 @@ To initialize a device driver with the USBA, it must first call
 .Xr usba_alloc_hcdi_ops 9F .
 This provides a device driver with the
 .Xr usba_hcdi_ops 9S
-structure that it must fill out. Please see
+structure that it must fill out. See
 .Xr usba_hcdi_ops 9S
 for instructions on how it should be filled out. Once filled out, the
 driver should call
@@ -205,13 +207,13 @@ will be called at this point.
 .Ss Binding the Root Hub
 Once this is set up, the hcdi driver must initialize its root hub by
 calling
-Xr usba_hcdi_bind_root_hub 9F .
+.Xr usba_hcdi_bind_root_hub 9F .
 To bind the root hub, the device driver is responsible for providing a
 device descriptor that represents the hardware. Depending on the
 hardware, this descriptor may be either static or dynamic.
 .Pp
 This device descriptor should be a packed descriptor that is the same
-that would be read off of the device. The device descriptor should match
+as would be read off of the device. The device descriptor should match
 a hub of a USB generation equivalent to the maximum speed of the device.
 For example, a USB 3.0 host controller would use a USB 3.0 hub's device
 descriptor.  Similarly, a USB 2.0 host controller would use a USB 2.0
@@ -242,7 +244,7 @@ are not packed for this purpose. They should not be used as they have
 gaps added by the compiler for alignment.
 .Pp
 Once assembled, the device driver should call
-.Xr usb_hubdi_bind_root_hub 9F .
+.Xr usba_hubdi_bind_root_hub 9F .
 This will cause an instance of the
 .Xr hubd 7D
 driver to be attached and associated with the root controller. As such,
@@ -250,10 +252,10 @@ driver writers need to ensure that all initialization is done prior to
 loading the root hub. Once successfully loaded, driver writers should
 assume that they'll get other calls into the driver's operation vector
 before the call to
-.Xr usb_hcdi_bind_root_hub 9F.
+.Xr usba_hubdi_bind_root_hub 9F .
 .Pp
 If the call to
-.Xr usb_hcdi_bind_root_hub 9F
+.Xr usba_hubdi_bind_root_hub 9F
 failed for whatever reason, the driver should unregister from USBA (see
 the next section), unwind all of the resources it has allocated, and
 return
@@ -418,7 +420,7 @@ or
 .Xr nochpoll 9F .
 .Ss Locking
 In general, the USBA calls into a device driver through one of the
-functions that it has register in the
+functions that it has registered in the
 .Xr usba_hcdi_ops 9S
 structure. However, in response to a data transfer, the device driver
 will need to call back into the USBA by calling
@@ -442,9 +444,9 @@ There are certain occasions where a device driver may have to enter the
 member of the
 .Xr usba_pipe_handle_data 9S
 structure when duplicating isochronous or interrupt requests. The USBA
-should in general, not hold this lock across calls to the HCD driver,
-and in turn, the HCD driver should not hold this lock across any calls
-back to the USBA. As such, the HCD driver should make sure to
+should in general, not hold this lock across calls to the HCD,
+and in turn, the HCD should not hold this lock across any calls
+back to the USBA. As such, the HCD should make sure to
 incorporate the lock ordering of this mutex into its broader lock
 ordering and operational theory. Generally, the
 .Sy p_mutex
@@ -562,13 +564,13 @@ member of a
 However, some controllers, such as xHCI, require that they control the
 device addressing themselves to facilitate their functionality. In such
 a case, the USBA still assigns every device an address; however, the
-actual address on the bus will be different and assigned by the HCD
-driver.  An HCD driver that needs to address devices itself must
-implement the
+actual address on the bus will be different and assigned by the host
+controller driver. A host controller driver that needs to address
+devices itself must implement the
 .Xr usba_hcdi_device_address 9E
-entry point.
+entry point. See the section
 .Sx Endpoint Polling
-more on the semantics of polling and periodic requests.
+for more on the semantics of polling and periodic requests.
 .Pp
 Here, the device driver will need to provide data and perform a callback
 whenever the state of one of the ports changes on its virtual hub.
@@ -585,8 +587,8 @@ one is requested on the root hub, the driver should return
 .It Fn usba_hcdi_pipe_close
 When a pipe to the root hub is closed, the device driver should tear
 down whatever it created as part of opening the pipe. In addition, if
-the pipe was an interrupt-IN pipe, if it has not already had polling
-stop, it should stop the polling as part of closing the pipe.
+the pipe was an interrupt-IN pipe, if it has not already stopped
+polling, it should stop polling as part of closing the pipe.
 .It Fn usba_hcdi_pipe_stop_intr_polling
 When a request to stop interrupt polling comes in and it is directed
 towards the root hub, the device driver should cease delivering
@@ -704,6 +706,20 @@ will be no timer activity, reducing overall system load.
 The following are data structures and types that are used throughout
 host controller drivers:
 .Bl -tag -width Vt
+.It Sy usba_pipe_handle_data
+This structure represents an endpoint on a USB device. This is the
+structure that is passed to the host controller driver for most
+operations and contains information about the endpoint descriptors,
+outstanding requests, and the USB device and client driver that this
+belongs to. This is a private structure shared between the USBA and host
+controller driers. The structure is documented in
+.Xr usba_pipe_handle_data 9S .
+.It Sy usba_device
+This structure represents a USB device that is present in the system.
+The USB device contains information about the device itself, such as the
+port it is plugged into, the negotiated speed, parent devices, and
+identifying information. The structure is documented in
+.Xr usba_device 9S .
 .It Sy usb_cfg_descr
 The configuration descriptor. A device may have one or more
 configurations that it supports that can be switched between. The
@@ -716,7 +732,18 @@ maximum packet size. This will often be used when setting up a device
 for the first time. It is documented in
 .Xr usb_dev_descr 9S .
 .It Sy usb_ep_descr
+The endpoint descriptor. This identifies the type of endpoint, its
+direction, the maximum packet size, and additional information. It is
+documented in
+.Xr usb_ep_descr 9S
+and is always available on pipe handles.
 .It Sy usb_xep_descr
+The extended endpoint descriptor. This contains the basic endpoint
+descriptor. It also contains the additional endpoint descriptors that
+were introduced with USB 3.0 and newer revisions and speeds if there
+were provided by the driver. It is documented in
+.Xr usb_ep_descr 9S
+and is always available on pipe handles.
 .It Sy usb_bulk_req
 This structure is filled out by client device drivers that want to make
 a bulk transfer request. Host controllers use this and act on it to
@@ -803,21 +830,19 @@ file.
 .Xr nochpoll 9F ,
 .Xr nodev 9F ,
 .Xr timeout 9F ,
-.Xr usb_hcdi_bind_root_hub 9F ,
-.Xr usb_hubdi_bind_root_hub 9F ,
 .Xr usba_alloc_hcdi_ops 9F ,
 .Xr usba_hcdi_cb 9F ,
 .Xr usba_hcdi_dup_intr_req 9F ,
 .Xr usba_hcdi_dup_isoc_req 9F ,
 .Xr usba_hcdi_register 9F ,
 .Xr usba_hcdi_unregister 9F ,
+.Xr usba_hubdi_bind_root_hub 9F ,
 .Xr usba_hubdi_close 9F ,
 .Xr usba_hubdi_devops 9F ,
 .Xr usba_hubdi_Devops 9F ,
 .Xr usba_hubdi_ioctl 9F ,
 .Xr usba_hubdi_open 9F ,
 .Xr usba_hubdi_unbind_root_hub 9F ,
-.Xr usb_hcdi_bind_root_hub 9F. ,
 .Xr cb_ops 9S ,
 .Xr dev_ops 9S ,
 .Xr mblk 9S ,

@@ -27,7 +27,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.

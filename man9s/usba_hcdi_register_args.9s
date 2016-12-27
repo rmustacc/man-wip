@@ -22,25 +22,24 @@
 .In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private
+illumos USB HCD private structure
 .Pp
 This is a private data structure that is not part of the stable DDI. It
 may be removed or changed at any time.
 .Sh DESCRIPTION
 The
 .Sy usba_hcdi_register_args_t
-structure is used by USB HCD device drivers to register with the USBA
-framework.
+structure is used by USB host controller device drivers to register with
+the USBA framework.
 .Pp
 The structure is used with the
 .Xr usba_hcdi_register 9F
-function. Device drivers may statically allocate this structure on the
-stack. It does not need to be allocated on the heap or used beyond the
-call to
+function. Device drivers may allocate this structure on the stack. It
+does not need to be allocated on the heap or used beyond the call to
 .Xr usba_hcdi_register 9F .
 .Pp
-For more information on the HCD device driver initialization process,
-see
+For more information on the host controller device driver initialization
+process, see
 .Xr usba_hcdi 9E .
 .Sh STRUCTURE MEMBERS
 The

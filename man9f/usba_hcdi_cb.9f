@@ -34,22 +34,22 @@ removed or changed at any time.
 .Sh PARAMETERS
 .Bl -tag -width Fa
 .It Fa ph
-A pointer to the USBA pipe handle that was passed to the HCD driver
-during a call to the
+A pointer to the USBA pipe handle that was passed to the host controller
+driver during a call to the
 .Xr usba_hcdi_pipe_open
 entry point.
 .It Fa req
 A pointer to the request structure that is being completed.
 .It Fa cr
-The completion code for the request. For a list of completion codes, see
-.Xr XXX (usb(9T)?).
+The completion code for the request. For more information on completion
+codes, see
+.Xr usba_hcdi 9E .
 .El
 .Sh DESCRIPTION
 The
 .Fn usba_hcdi_cb
-function is used when the HCD controller has completed processing a USB
-transfer request, whether
-successfully or not.
+function is used when the host controller has completed processing a USB
+transfer request, whether successfully or not.
 .Pp
 The USB transfer will have been initiated by a call to
 .Xr usba_hcdi_pipe_bulk_xfer 9E ,
@@ -61,8 +61,8 @@ If the transfer initiated was a periodic transfer (certain Interrupt-IN
 and Isochronous-IN transfers), then there may be more than one callback
 performed over the life of the transfer.
 .Pp
-This function must not be used if the HCD driver returned a value
-other than
+This function must not be used if the host controller driver returned a
+value other than
 .Sy USB_SUCCESS
 to one of the transfer initialization functions listed above. For more
 information on transfer request handling, see
@@ -103,22 +103,25 @@ member should be filled in with the appropriate data.
 .Pp
 Once, the request structure has been passed to the
 .Fn usba_hcdi_cb
-function, the HCD driver must not access the structure ever again. It
+function, the HCD must not access the structure ever again. It
 should be treated as freed memory.
 .Pp
 The
 .Fa cr
-argument us used to indicate whether the transfer was successful or not.
+argument is used to indicate whether the transfer was successful or not.
 If
 .Fa cr
 is set to
 .Sy USB_CR_OK
 that indicates that the transfer completed successfully. This should
 also be used when a permitted short transfer has occurred. Otherwise, it
-should be set to one of the completion reasons specified in
-.Xr XXX (usb(9T)?) .
+should be set to one of the completion reasons. See the
+.Sx Types
+section of
+.Xr usba_hcdi 9E
+for more information. 
 .Ss Locking
-The HCD driver should not hold its own internal locks across a call to
+The HCD should not hold its own internal locks across a call to
 the
 .Fn usba_hcdi_cb
 function. It is possible that the driver will have once of its

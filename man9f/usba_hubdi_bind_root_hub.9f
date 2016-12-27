@@ -59,7 +59,7 @@ The
 and
 .Fn usba_hubdi_unbind_root_hub
 functions are used to bind and unbind the root USB hub that is a part of
-every HCD driver. See
+every host controller driver (HCD). See
 .Xr usba_hcdi 9E
 for more information on this relationship.
 .Pp
@@ -71,8 +71,8 @@ function during a device's
 .Xr attach 9E
 entry point.
 .Pp
-Because the root hub provided by the HCD driver is a virtual Hub that
-does not exist like a standard USB Hub, the HCD driver is responsible
+Because the root hub provided by the HCD is a virtual Hub that
+does not exist like a standard USB Hub, the HCD is responsible
 for making it look like one.
 .Pp
 The contents of the
@@ -80,8 +80,8 @@ The contents of the
 should be the standard USB Hub class-specific descriptor. This hub
 descriptor should match a hub of a similar class of speed. For example,
 with the xhci controller, a USB 3.x Hub class-specific descriptor is
-used, where as for the ehci controller, a USB 2.x Hub class-specific
-descriptor is used. For emore information, see the USB 3.1
+used, whereas for the ehci controller, a USB 2.x Hub class-specific
+descriptor is used. For more information, see the USB 3.1
 specification, section 10.15.2
 .Em Class-specific Descriptors .
 .Pp
@@ -96,7 +96,7 @@ and the USB 3.1 specification, section 10.15.1
 .Pp
 The
 .Fn usba_hubdi_unbind_root_hub
-function is used to detach the root hub associated with the HCD driver.
+function is used to detach the root hub associated with the HCD.
 This should be called during a device's
 .Xr detach 9E
 routine before calling

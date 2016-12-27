@@ -22,17 +22,17 @@
 .In sys/usb/usba/hcdi.h
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private
+illumos USB HCD private structure
 .Pp
 This is a private data structure that is not part of the stable DDI. It
 may be removed or changed at any time.
 .Sh DESCRIPTION
 The
 .Sy usba_hcdi_ops
-structure is usbed HCD drivers to register operations vectors and
-callbacks from the USBA HCD interface. See
+structure is used by host controller drivers to register operations
+vectors and callbacks from the USBA HCD interface. See
 .Xr usba_hcdi 9E
-for more information on USB HCD device drivers.
+for more information on USB host controller device drivers.
 .Pp
 The structure is allocated through a call to the
 .Xr usba_alloc_hcdi_ops 9F
@@ -100,15 +100,15 @@ int	(*usba_hcdi_hub_update)(usba_device_t *, uint8_t, uint8_t);
 .Pp
 The
 .Sy usba_hcdi_ops_version
-member is used to indicate the revision of the operations vector. HCD
-drivers should generally set this to
+member is used to indicate the revision of the operations vector. Host
+controller drivers should generally set this to
 .Dv HCDI_OPS_VERSION .
 .Pp
 The
 .Sy usba_hcdi_dip
 member should be set to the
 .Sy dev_info_t
-structure of the HCD driver that was received in
+structure of the HCD that was received in
 .Xr attach 9E .
 .Pp
 The
@@ -219,9 +219,9 @@ The
 and
 .Sy usba_hcdi_console_input_exit
 members are used to facilitate a USB device acting as the system console
-and reading input from it. Support for this is optional in an HCD
-driver. HCD drivers which do not support this functionality should have
-functions which return
+and reading input from it. Support for this is optional in a host
+controller driver.  Host controller drivers which do not support this
+functionality should have functions which return
 .Sy USB_FAILURE .
 .Pp
 The
@@ -232,9 +232,9 @@ The
 and
 .Sy usba_hcdi_console_output_exit
 members are used to facilitate a USB device acting as the system console
-and outputting data to it. Support for this is optional in an HCD
-driver. HCD drivers which do not support this functionality should have
-functions which return
+and outputting data to it. Support for this is optional in a host
+controller driver.  Host controller drivers which do not support this
+functionality should have functions which return
 .Sy USB_FAILURE .
 .Pp
 The
@@ -242,8 +242,8 @@ The
 member is an
 .Em optional
 entry point that will be called every time a new device is initialized
-and detected by the system. If an HCD does not need this functionality,
-the member should be set to
+and detected by the system. If a host controller driver does not need
+this functionality, the member should be set to
 .Dv NULL .
 See
 .Xr usba_hcdi_device_init 9E
@@ -256,7 +256,7 @@ member is an
 entry point that will be called every time a device is removed from the
 system, whether through it being unplugged or a
 .Xr cfgadm 1M
-action. If an HCD does not need this functionality,
+action. If a host controller driver does not need this functionality,
 the member should be set to
 .Dv NULL .
 See
@@ -268,8 +268,8 @@ The
 member is an
 .Em optional
 entry point that will be called every time a USB device needs to be
-addressed. If an HCD driver does not need this functionality, the member
-should be set to
+addressed. If a host controller driver does not need this
+functionality, the member should be set to
 .Dv NULL .
 See
 .Xr usba_hcdi_device_address 9E
@@ -280,10 +280,10 @@ The
 member is an
 .Em optional
 entry point that will be called every time a device descriptor is read
-that turns out to be a hub. This gives HCD drivers a chance to perform
-any needed controller-specific functionality before the device is
-used. If an HCD driver does not need this functionality, the member
-should be set to
+that turns out to be a hub. This gives host controller drivers a chance
+to perform any needed controller-specific functionality before the
+device is used. If a host controller driver does not need this
+functionality, the member should be set to
 .Dv NULL .
 See
 .Xr usba_hcdi_hub_update 9E

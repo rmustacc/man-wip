@@ -27,7 +27,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This is a private function that is not part of the stable DDI. It may be
 removed or changed at any time.
@@ -45,8 +45,8 @@ Flags which describe how allocations should be performed. Valid flags
 are:
 .Bl -tag -width Sy
 .It Sy USB_FLAGS_NOSLEEP
-Do not block waiting for memory. If memory is not the allocation will
-fail.
+Do not block waiting for memory. If memory is not available the
+allocation will fail.
 .It Sy USB_FLAGS_SLEEP
 Perform a blocking allocation. If memory is not available, the function
 will wait until memory is made available.
@@ -75,7 +75,7 @@ should return
 .Pp
 Isochronous transfers happen once a period. Isochronous transfers may
 just be told to start as son as possible or to line up to a specific
-frame. At this time, nothing in the system uses the later behavior. It
+frame. At this time, nothing in the system uses the latter behavior. It
 is reasonable for a new driver to require that the
 .Sy USB_ATTRS_ISOC_XFER_ASAP
 flag be set in the
@@ -109,8 +109,13 @@ up into multiple packets. All of these packets make up a single transfer
 request and each one represents the data that is transfered during a
 single portion of a frame. For the description of them, see
 .Xr usb_isoc_req 9S .
-Because of these data structures, the way that transfers are recorded is
-different and will be discussed later on.
+To determine the length of the transfer, the driver should sum up all of
+the individual transfer lengths based on the
+.Sy isoc_pkt_length
+member. See the
+.Sx Callback Handling
+section for more information on how drivers will need to fill out this
+data structure upon transfer completion.
 .Pp
 The device driver should allocate memory, whether DMA memory or
 otherwise, to perform the transfer. For all memory allocated, it should

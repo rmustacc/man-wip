@@ -19,7 +19,7 @@
 .Nm usba_hcdi_cb_open ,
 .Nm usba_hcdi_cb_ioctl ,
 .Nm usba_hcdi_cb_close
-.Nd USBA HCD Character Device character functions
+.Nd USB host controller character device functions
 .Sh SYNOPSIS
 .In sys/types.h
 .In sys/file.h
@@ -53,7 +53,7 @@
 .Fc
 .Sh INTERFACE LEVEL
 .Sy Volatile -
-illumos USB HCD private function
+illumos USB HCD private entry point
 .Pp
 This describes private interfaces that are not part of the stable DDI.
 This may be removed or changed at any time.
@@ -71,8 +71,8 @@ and
 .Xr close 9E
 entry points. As discussed in
 .Xr usba_hcdi 9E
-all HCD drivers are required to implement these functions and vector
-them to
+all host controller drivers are required to implement these functions
+and vector them to
 .Xr usba_hubdi_open 9F ,
 .Xr usba_hubdi_ioctl 9F ,
 and
@@ -87,11 +87,11 @@ and
 The arguments between the two types of functions are slightly different.
 The
 .Sx EXAMPLES
-section provides a sketch for how most HCD drivers should perform those
-transformations.
+section provides a sketch for how most host controller drivers should
+perform those transformations.
 .Pp
 One important distinction from the traditional character routines is
-that the USBA controls a bit more of the minor space. Therefore, the
+that the USBA controls a more of the minor number space. Therefore, the
 driver needs to take extra care around the values encoded in the
 .Sy dev_t
 and it should not perform any cloning or renumbering in its
@@ -100,8 +100,8 @@ entry point.
 .Sh EXAMPLES
 The following example is adapated from the
 .Xr xhci 7D
-driver which shows how an HCD driver might arrange things. This assumes
-that a driver is following the recommendations in
+driver which shows how a host controller driver might arrange things.
+This assumes that a driver is following the recommendations in
 .Xr usba_hcdi 9E
 and has initialized a soft state structure through the
 .Xr ddi_soft_state_init 9F
@@ -145,7 +145,7 @@ prefix_get_dip(dev_t dev)
 }
 
 static int
-xhci_open(dev_t *devp, int flags, int otyp, cred_t *credp)
+prefix_open(dev_t *devp, int flags, int otyp, cred_t *credp)
 {
 	dev_info_t *dip = prefix_get_dip(*devp);
 
@@ -153,7 +153,7 @@ xhci_open(dev_t *devp, int flags, int otyp, cred_t *credp)
 }
 
 static int
-xhci_ioctl(dev_t dev, int cmd, intptr_t arg, int mode, cred_t *credp,
+prefix_ioctl(dev_t dev, int cmd, intptr_t arg, int mode, cred_t *credp,
     int *rvalp)
 {
 	dev_info_t *dip = prefix_get_dip(dev);
@@ -166,7 +166,7 @@ xhci_ioctl(dev_t dev, int cmd, intptr_t arg, int mode, cred_t *credp,
 static int
 prefix_close(dev_t dev, int flag, int otyp, cred_t *credp)
 {
-	dev_info_t *dip = xhci_get_dip(dev);
+	dev_info_t *dip = prefix_get_dip(dev);
 
 	return (usba_hubdi_close(dip, dev, flag, otyp, credp));
 }

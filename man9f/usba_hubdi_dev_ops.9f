@@ -39,9 +39,9 @@ function, see
 .Sh DESCRIPTION
 The
 .Fn usba_hubdi_root_hub_power
-function is a utility function for the implementation of USB HCD
-drivers. USB HCD drivers that support power management, should use set
-the
+function is a utility function for the implementation of USB host
+controller drivers (HCD). USB host controller drivers that support power
+management, should set the
 .Sy devo_power
 member of their
 .Xr dev_ops 9S
