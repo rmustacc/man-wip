@@ -10,6 +10,7 @@ SCSAv3 related stuff:
  o SCSI_HBA_ADDR_COMPLEX bits:
 
    - scsi_address_device
+   - scsi_device_unit_address (note, it's currently private)
    - scsi_device_hba_private_get,
    - scsi_device_hba_private_set
    - tran_setup, etc.
