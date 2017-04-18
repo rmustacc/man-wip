@@ -62,7 +62,7 @@ representation.
 .Pp
 World wide numbers are unique identifiers that are used in storage
 technologies, particularly ATA, SAS, and FC. The format of a WWN is
-defined by the IEEE and genearlly come in 8 and 16 byte forms. These
+defined by the IEEE and generally come in 8 and 16 byte forms. These
 interfaces only operate on the 8 byte forms.
 .Pp
 When the WWN is represented as a string, it is represented as a 16
@@ -72,7 +72,7 @@ be preceded by a
 .Sq w
 character. When this is present, this is called the
 .Em unit-address form .
-If the string is not 16 ascii character long or 17, when using the
+If the string is not 16 ASCII character long or 17, when using the
 unit-address form, the string is considered invalid. The following
 macros are provided to help deal with these lengths:
 .Bl -tag -width Dv
