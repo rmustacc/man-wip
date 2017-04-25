@@ -33,7 +33,7 @@ Pointer to the
 .Vt Bdev_info_t
 structure that refers to the instance of the HBA device.
 .It Fa hba_tran
-Pointer to a 
+Pointer to a
 .Xr scsi_hba_tran 9S
 structure.
 .It Fa hba_flags
@@ -183,9 +183,8 @@ and respect any settings for features provided the HBA.
 .It Sy scsi-options
 .Sy Optional SCSI configuration bits .
 The following values may be bitwise-inclusive-ORed together.
-.Pp
 .Bl -tag -width Dv
-.IT Dv SCSI_OPTIONS_DR
+.It Dv SCSI_OPTIONS_DR
 If not set, the HBA should not grant Disconnect privileges to target devices.
 .It Dv SCSI_OPTIONS_TAG
 If not set, the HBA should not operate in Command Tagged Queueing mode.
@@ -223,6 +222,15 @@ The
 .Fn scsi_hba_detach
 function removes the reference to the DMA attributes structure and the
 transport vector for the given instance of an HBA driver.
+.Sh CONTEXT
+The
+.Fn scsi_hba_attach_setup
+function should be called from
+.Xr attach 9E .
+The
+.Fn scsi_hba_detach
+function should be called from
+.Xr detach 9E .
 .Sh RETURN VALUES
 The
 .Fn scsi_hba_attach_setup
@@ -233,15 +241,6 @@ functions return
 if the function call succeeds, and return
 .Dv DDI_FAILURE
 on failure.
-.Sh CONTEXT
-The
-.Fn scsi_hba_attach_setup
-function should be called from
-.Xr attach 9E .
-The
-.Fn scsi_hba_detach
-function should be called from
-.Xr detach 9E .
 .Sh SEE ALSO
 .Xr iport 9 ,
 .Xr attach 9E ,

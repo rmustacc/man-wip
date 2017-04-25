@@ -108,6 +108,13 @@ structure. The returned string should not be modified by the device
 driver. The unit address string comes from values that are passed when
 the device is enumerated, generally through an instance of an
 .Xr iport 9 .
+.Sh CONTEXT
+These functions may be used in
+.Sy user ,
+.Sy kernel ,
+and
+.Sy interrupt
+context.
 .Sh RETURN VALUES
 Upon successful completion, the
 .Fn scsi_address_device
@@ -121,7 +128,7 @@ The
 .Fn scsi_device_hba_private_set
 function returns a data value registered via the
 .Fn scsi_device_hba_private_get
-function. If the 
+function. If the
 .Fn scsi_device_hba_private_get
 was never called,
 .Dv NULL
@@ -143,13 +150,6 @@ and
 .Fn scsi_device_unit_address
 functions return
 .Dv NULL .
-.Sh CONTEXT
-These functions may be used in
-.Sy user ,
-.Sy kernel ,
-and
-.Sy interrupt
-context.
 .Sh SEE ALSO
 .Xr iport 9 ,
 .Xr tran_start 9E ,

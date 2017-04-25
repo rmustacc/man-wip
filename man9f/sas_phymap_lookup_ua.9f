@@ -154,6 +154,13 @@ is returned it indicates that the set is empty. Regardless of whether or
 not the set has been iterated over, the caller must call the
 .Fn sas_phymap_phys_free
 function to release the memory associated with the set.
+.Sh CONTEXT
+All functions may be used in
+.Sy user ,
+.Sy kernel ,
+and
+.Sy interrupt
+context.
 .Sh RETURN VALUES
 Upon successful completion, the
 .Fn sas_phymap_lookup_ua
@@ -191,13 +198,6 @@ function returns a non-negative integer indicating a present phy or it
 returns
 .Sy -1
 to indicate that no values remain.
-.Sh CONTEXT
-All functions may be used in
-.Sy user ,
-.Sy kernel ,
-and
-.Sy interrupt
-context.
 .Sh SEE ALSO
 .Xr phymap 9 ,
 .Xr sas_phymap_create 9F

@@ -63,6 +63,16 @@ which is passed in the
 .Fa ua
 argument. The unit address for an iport is established when the iport is
 created.
+.Sh CONTEXT
+The
+.Fn scsi_hba_iport_exist
+and
+.Fn scsi_hba_iport_find
+functions may be called in either
+.Sy user
+or
+.Sy kernel
+context.
 .Sh RETURN VALUES
 The
 .Fn scsi_hba_iport_exists
@@ -80,16 +90,6 @@ function returns a pointer to the iport's
 structure, if found. Otherwise,
 .Dv NULL
 is returned.
-.Sh CONTEXT
-The
-.Fn scsi_hba_iport_exist
-and
-.Fn scsi_hba_iport_find
-functions may be called in either
-.Sy user
-or
-.Sy kernel
-context.
 .Sh SEE ALSO
 .Xr iport 9 ,
 .Xr iportmap 9 ,

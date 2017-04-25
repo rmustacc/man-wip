@@ -62,14 +62,6 @@ The name of the iport, specified by
 must be unique for a given parent. The iport will not be created if the
 name is already in use. While names generally are based on unit
 addresses, they may be synthetic names.
-.Sh RETURN VALUES
-Upon successful completion, the
-.Fn scsi_hba_iport_register
-function returns
-.Dv DDI_SUCCESS .
-Otherwise,
-.Dv DDI_FAILURE
-is returned.
 .Sh CONTEXT
 The
 .Fn scsi_hba_iport_register
@@ -80,6 +72,14 @@ entry point and may be called from
 or
 .Sy kernel
 context.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn scsi_hba_iport_register
+function returns
+.Dv DDI_SUCCESS .
+Otherwise,
+.Dv DDI_FAILURE
+is returned.
 .Sh SEE ALSO
 .Xr iport 9 ,
 .Xr iport 9 ,

@@ -33,7 +33,8 @@ not guaranteed.
 Pointer to
 .Vt dev_info
 structure.
-.Sh SYNOPSIS
+.El
+.Sh DESCRIPTION
 The
 .Fn scsi_hba_iport_unit_address
 function is used to obtain the unit address of an iport. For more
@@ -47,13 +48,6 @@ the unit address used when it was created either through
 or
 .Xr scsi_hba_iportmap_iport_add 9F
 will be returned.
-.Sh RETURN VALUES
-If
-.Fa dip
-is an iport, then the unit address string the device was registered with
-is returned. Otherwise,
-.Dv NULL
-is returned.
 .Sh CONTEXT
 The
 .Fn scsi_hba_iport_unit_address
@@ -63,8 +57,15 @@ function may be called in
 or
 .Sy interrupt
 context.
+.Sh RETURN VALUES
+If
+.Fa dip
+is an iport, then the unit address string the device was registered with
+is returned. Otherwise,
+.Dv NULL
+is returned.
 .Sh SEE ALSO
 .Xr iport 9 ,
 .Xr iportmap 9 ,
 .Xr scsi_hba_iport_register 9F ,
-.Xr scsi_hba_iportmap_iport_add 9F 
+.Xr scsi_hba_iportmap_iport_add 9F

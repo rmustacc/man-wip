@@ -240,17 +240,6 @@ function using the same phy identifier that it used when adding the phy.
 If this is the last phy that was used for this logical port, then the
 corresponding logical port will be removed and the deactivate callback
 function, if registered, will be called.
-.Sh RETURN VALUES
-Upon successful completion, the
-.Fn sas_phymap_create ,
-.Fn sas_phymap_phy_add ,
-and
-.Fn sas_phymap_phy_rem
-functions return
-.Dv DDI_SUCCESS .
-Otherwise,
-.Dv DDI_FAILURE
-is returned to indicate that they failed.
 .Sh CONTEXT
 The
 .Fn sas_phymap_create
@@ -283,6 +272,17 @@ functions may be called from
 or
 .Sy kernel
 context.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn sas_phymap_create ,
+.Fn sas_phymap_phy_add ,
+and
+.Fn sas_phymap_phy_rem
+functions return
+.Dv DDI_SUCCESS .
+Otherwise,
+.Dv DDI_FAILURE
+is returned to indicate that they failed.
 .Sh SEE ALSO
 .Xr iportmap 9 ,
 .Xr phymap 9 ,
@@ -291,4 +291,4 @@ context.
 .Xr detach 9E ,
 .Xr sas_phymap_lookup_ua 9F ,
 .Xr sas_phymap_lookup_uapriv 9F ,
-.Xr sas_phymap_phy2ua 9F ,
+.Xr sas_phymap_phy2ua 9F

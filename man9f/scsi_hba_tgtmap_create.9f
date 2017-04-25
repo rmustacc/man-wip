@@ -270,7 +270,7 @@ argument is a modifiable private value. Initially,
 .Fa tgt_privp
 points to the value passed in as
 .Fa tgt_priv
-to either the 
+to either the
 .Fn scsi_hba_tgtmap_set_add
 or
 .Fn scsi_hba_tgtmap_tgt_add
@@ -396,22 +396,6 @@ and
 arguments match those that were used when calling the
 .Fn scsi_hba_tgtmap_tgt_add
 function.
-.Sh RETURN VALUES
-Upon successful completion, the 
-.Fn scsi_hba_tgtmap_create ,
-.Fn scsi_hba_tgtmap_destroy ,
-.Fn scsi_hba_tgtmap_set_begin ,
-.Fn scsi_hba_tgtmap_set_add ,
-.Fn scsi_hba_tgtmap_set_end ,
-.Fn scsi_hba_tgtmap_set_flush ,
-.Fn scsi_hba_tgtmap_tgt_add ,
-and
-.Fn scsi_hba_tgtmap_tgt_remove
-functions return
-.Dv DDI_SUCCESS .
-Otherwise,
-.Dv DDI_FAILURE
-is returned.
 .Sh CONTEXT
 The
 .Fn scsi_hba_tgtmap_create
@@ -456,6 +440,22 @@ or with
 .Xr timeout 9F
 if they receive notifications during an interrupt that causes them to
 need to call these functions.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn scsi_hba_tgtmap_create ,
+.Fn scsi_hba_tgtmap_destroy ,
+.Fn scsi_hba_tgtmap_set_begin ,
+.Fn scsi_hba_tgtmap_set_add ,
+.Fn scsi_hba_tgtmap_set_end ,
+.Fn scsi_hba_tgtmap_set_flush ,
+.Fn scsi_hba_tgtmap_tgt_add ,
+and
+.Fn scsi_hba_tgtmap_tgt_remove
+functions return
+.Dv DDI_SUCCESS .
+Otherwise,
+.Dv DDI_FAILURE
+is returned.
 .Sh SEE ALSO
 .Xr sd 7D ,
 .Xr ses 7D ,
