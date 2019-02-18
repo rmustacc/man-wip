@@ -1,0 +1,193 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 17, 2019
+.Dt CTF_OPEN 3CTF
+.Os
+.Sh NAME
+.Nm ctf_open ,
+.Nm ctf_fdopen ,
+.Nm ctf_bufopen ,
+.Nm ctf_close
+.Nd open and close CTF containers
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft "ctf_file_t *"
+.Fo ctf_open
+.Fa "const char *path"
+.Fa "int *errp"
+.Fc
+.Ft "ctf_file_t *"
+.Fo ctf_fdopen
+.Fa "int fd"
+.Fa "int *errp"
+.Fc
+.Ft "ctf_file_t *"
+.Fo ctf_bufopen
+.Fa "const ctf_sect_t *ctfsect"
+.Fa "const ctf_sect_t *symsect"
+.Fa "const ctf_sect_t *strsect"
+.Fa "int *errp"
+.Fc
+.Ft void
+.Fo ctf_close
+.Fa "ctf_file_t *fp"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_open ,
+.Fn ctf_fdopen ,
+and
+.Fn ctf_bufopen
+functions all provide different ways to open up a CTF container and
+return a handle to it that can be used with the rest of the library.
+.Pp
+All of the functions support opening a CTF version one or version two
+container that is either on its own or that is embedded as an ELF object
+in a specific section.  The primary difference between all three
+functions is how they begin the search for the data to open.
+.Pp
+The
+.Fn ctf_open
+function searches for a CTF container in the file system location
+described by
+.Fa path
+where as the
+.Fn ctf_fdopen
+function instead uses the file descriptor,
+.Fa fd ,
+as the source for the CTF container.
+.Pp
+The
+.Fn ctf_bufopen
+function is designed for use by debuggers.
+Rather than assuming that there is a valid ELF object or CTF container,
+the caller provides structures that point towards the memory.
+The callers is required to pass in the CTF data section in
+.Fa ctfsect ;
+however, the two other sections,
+.Fa symsect
+and
+.Fa strsect
+are optional, but must either both be provided or neither be provided.
+The
+.Ft ctf_sect_t
+structure contains some of the information present in an ELF section
+header and is fully documented in
+.Xr libctf 3LIB .
+.Pp
+In all three cases, the caller may pass a pointer to an integer into
+.Fa errp
+which will be filled in with a detailed error in case the call to open
+the library handle fails.
+This is optional and if it is not desired, then the caller should pass
+.Dv NULL .
+The error can be turned into a human readable string through the use of
+the
+.Xr ctf_errmsg 3CTF
+function.
+.Pp
+The
+.Fn ctf_close
+function releases all of the resources associated with the CTF container
+.Fa fp .
+Once the
+.Fn ctf_close
+function has been called on the object, it must not be used in any
+subsequent library calls.
+The
+.Ft ctf_file_t
+maintains an internal reference count.
+If it has been used as a parent as part of calling
+.Xr ctf_import 3CTF ,
+it is still required to call the
+.Fn ctf_close
+function.
+The resources will be released when the last reference to the file has
+been released.
+In the above example, this would occur when the program called
+.Fn ctf_close
+on the child pointer that it was imported into.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_open ,
+.Fn ctf_fdopen ,
+and
+.Fn ctf_bufopen
+will return a pointer to the allocated CTF container.
+Otherwise,
+.Dv NULL
+is returned and if
+.Fa errp
+is valid, it will be filled in with a more detailed error number.
+.Sh ERRORS
+The
+.Fn ctf_open ,
+.Fn ctf_fdopen ,
+and
+.Fn ctf_bufopen
+functions may fail due to several different system calls they make
+including, but not limited to,
+.Xr open 2 ,
+.Xr pread 2 ,
+.Xr mmap 2 ,
+and othters.
+For a full list of possible errors, see the
+.Sy ERRORS
+section in
+.Xr libctf 3LIB
+and the error list in
+.Xr Intro 2 .
+.Pp
+The
+.Fn ctf_open ,
+.Fn ctf_fdopen ,
+and
+.Fn ctf_bufopen
+functions will fail if:
+.Bl -tag -width Er
+.It Er ECTF_CORRUPT
+The CTF data referenced is inconsistent and corrupted.
+It could not be parsed.
+.It Er ECTF_CTFVERS
+The CTF data is of a version that the library does not support.
+.It Er ECTF_DECOMPRESS
+The CTF data is compressed and an error was encountered while
+decompressing.
+.It Er ECTF_ELFVERS
+The referenced ELF object is of a version the library doesn't
+understand.
+.It Er ECTF_ENDIAN
+The referenced ELF object has a different endian value than the
+underlying host.
+.It Er ECTF_MMAP
+The system failed to memory map one of the data sections.
+.It Er ECTF_NOCTFBUF
+The size of the CTF section did not cover the preamble and header.
+.It Er ECTF_NOCTFDATA
+No ELF section containing CTF data was found.
+.It Er ECTF_STRBAD
+A string table section was specified, but no data was present.
+.It Er ECTF_SYMBAD
+A symbol table section was specified, but no data was present.
+.It Er ECTF_SYMTAB
+A symbol table section was specified and it has an invalid entity size.
+.It Er ECTF_ZALLOC
+The system was unable to obtain memory for uncompressing the CTF data.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+XXX
+.Sh SEE ALSO

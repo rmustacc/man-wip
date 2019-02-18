@@ -1,0 +1,56 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_KIND_NAME 3CTF
+.Os
+.Sh NAME
+.Nm ctf_kind_name
+.Nd return the name of a CTF kind
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft "const char *"
+.Fo ctf_kind_name
+.Fa "ctf_file_t *fp"
+.Fa "int kind"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_kind_name
+function returns a character string that contains the name of the kind
+of type referred to by
+.Fa kind
+that is present in the container
+.Fa fp .
+For example, if the kind was
+.Dv CTF_K_INTEGER ,
+this might return the string
+.Qq integer .
+.Pp
+A valid character string is always returned, even in the face of unknown
+strings.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_kind_string
+function returns a pointer to a character string with the name of
+.Fa kind .
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

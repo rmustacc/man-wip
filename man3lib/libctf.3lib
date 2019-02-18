@@ -1,0 +1,868 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 17, 2019
+.Dt LIBCTF 3CTF
+.Os
+.Sh NAME
+.Nm libctf
+.Nd compact C type format library
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Sh DESCRIPTION
+The
+.Nm
+library provides a means of programatically generating and consuming the
+compact C type format
+.Pq CTF
+described in
+.Xr ctf 4 .
+CTF data provides type information based on the C programming
+language and provides a means of not only iterating those types, but
+also mapping them back to function arguments and symbols.
+It is primarily designed around the use case of debugging and generating
+CTF data.
+.Pp
+This library is
+.Em private
+to illumos.
+It is an unstable library that is subject to change its API and ABI at
+any time.
+It is documented to aid those working on illumos itself.
+Applications that are not a part of illumos, should not use it.
+.Pp
+The
+.Nm
+library provides interfaces that focus on:
+.Bl -bullet -offset indent
+.It
+Understanding the different types in the program.
+.It
+Mapping those types to corresponding functions, their arguments, and
+symbols.
+.It
+Creating new CTF data.
+.It
+Converting CTF data from another format.
+.It
+Finding differences between different CTF data.
+.It
+Merging different CTF data together.
+.It
+Reading and writing CTF data out to raw files or as ELF sections.
+.El
+.Ss Initializing the Library
+The
+.Nm
+library uses
+.Xr libelf 3ELF
+library as part of its implementation.
+Before using the
+.Nm libctf
+library, a caller must first initialize the ELF library by calling the
+.Xr elf_version 3ELF
+function.
+If this function fails, then a number of the
+.Nm
+library functions will also fail.
+.Ss CTF Containers
+CTF data is arrayed in an object that we term a
+.Em container .
+A CTF container is usually embedded as a section of an ELF object such
+as a shared library or executable, though it is possible to write a raw
+CTF data out to a file.
+The underlying format and data structure of the container is documented
+in
+.Xr ctf 4 .
+.Pp
+A single CTF container covers an entire executable or shared library's
+objects.
+The libraries that those link against, or dynamic shared objects that
+are loaded at run-time through routines such as
+.Xr dlopen 3C
+will have their own CTF containers.
+.Pp
+A CTF container may have what's called a
+.Em parent .
+When a CTF container has a parent, it is called a child.
+The child container's types will have references to the types in the
+parent.
+In such cases, one would need both the parent and the child to be able
+understand all of the type information in the child.
+This is often used when you have a common dependency.
+For example, the core operating system kernel, 'genunix', is the parent
+of all of the kernel modules that have CTF data.
+This reduces the amount of type information in each module which would
+otherwise be duplicated and shared between them.
+.Ss Finding CTF data
+CTF containers are generally access through functions such as
+.Fn ctf_open ,
+.Fn ctf_bufopen ,
+and
+.Fn ctf_fdopen .
+These will look for CTF data in a corresponding file or buffer.
+IF the file is an ELF object, they will search through the ELF section
+headers to find the CTF section, which is named
+.Qq .SUNW_ctf .
+.Pp
+The CTF section in an ELF file is generally marked as being loaded at
+program run-time.
+This means that a live process or core file will contain CTF data and
+one does not need to find the underlying files that contain this
+information.
+One can use
+.Xr libproc 3PROC
+to obtain this information through functions such as
+.Xr Paddr_to_ctf 3PROC
+or
+.Xr Pname_to_ctf 3PROC .
+.Ss Creating CTF
+In addition to using CTF containers that have already been created, the
+library provides a means for creating an empty CTF container and then
+filling it with your own type definitions.
+An empty CTF container is created with the
+.Fn ctf_create
+function.
+Once created, a data model can be associated with the container
+.Pq Fn ctf_setmodel ,
+types can be added
+.Po
+.Fn ctf_add_integer ,
+.Fn ctf_add_struct ,
+etc.
+.Pc ,
+and functions and objects can be associated with it
+.Po
+.Fn ctf_add_function ,
+.Fn ctf_add_object
+.Pc .
+If a type was added erroneously, the
+.Fn ctf_delete_type
+function can be used to remove it.
+.Pp
+When adding type data, they are initially considered
+.Em dynamic types .
+These types aren't always usable by the rest of the library.
+To be able to use them, one must effectively commit them, by calling
+the
+.Fn ctf_update
+function.
+This effectively locks them into place and makes it behave as though you
+had opened a CTF container that had all of the data in it.
+At that point in type, existing types can no longer be deleted or
+modified.
+It's also possible to discard all of the dynamic types through the
+.Fn ctf_discard
+function.
+.Ss Converting and Uniquifying CTF data
+Compilers for the C programming language do not generate CTF data
+directly.
+Instead, it has to be converted from an existing debug format such as
+DWARF.
+.Pp
+The
+.Fn ctf_fdconvert
+and
+.Fn ctf_elfconvert
+functions are designed to perform conversion of other formats into type
+data.
+The currently supported formats for conversion are:
+.Bl -bullet -offset indent
+.It
+DWARFv2
+.El
+.Pp
+The conversion process takes care of finding all of the relevant
+information and merging in into a single CTF container.
+Under the hood, the conversion process also uses a diffing and merging
+framework.
+These may be accessed and driven independently of the conversion
+process.
+The starting points for these are the functions
+.Fn ctf_diff_init
+and
+.Fn ctf_merge_init .
+.Pp
+In addition to the standard conversion process, it is also possible to
+perform a
+.Sq uniquification .
+This process is a variant of a standard merge.
+It creates a parent and child relationship between two CTF containers
+and puts all of the unique data in the child container.
+This can be performed as part of a merge process by using the
+.Fn ctf_merge_uniquify
+function.
+.Ss Utilities
+A number of command line utilities exist that leverage the functionality
+in the library.
+These utilities may be useful to those who are working with the library
+both because they provide a means to dump and inspect the CTF data, but
+also because they use the library and may be informative examples.
+.Bl -tag -offset indent -width Xr
+.It Xr ctfdump 1
+The ctfdump command dumps the CTF information that is present in either
+a raw file or an ELF object.
+This is useful for understanding the make up of the CTF data.
+.It Xr ctfconvert 1
+The ctfconvert command converts data from other debug formats into CTF
+and stores it into either the existing file or a separate one.
+.It Xr ctfdiff 1
+The ctfdiff program looks at two different CTF containers and finds
+differences in them.
+It uses the same logic as the underlying merging algorithm.
+.It Xr mdb 1
+The modular debugger understands CTF data and can be used to interpret
+raw data in terms of CTF data.
+A common example is printing a structure in memory.
+.It Xr dtrace 1M
+The dtrace command leverages CTF data in much the same way as mdb, which
+allows one to see another way of looking at CTF data.
+.El
+.Sh INTERFACES
+The shared object
+.Sy libctf.so.1
+provides the interfaces defined below.
+See
+.Xr Intro 3
+for additional information on shared object interfaces.
+Functions are organized into categories that describe their purpose.
+Individual functions are documented in their own manual pages.
+.Ss Opening, Closing, and Importing handles
+The following functions relate to the opening and closing of handles.
+.Bl -column -offset indent "ctf_bufopen" "ctf_bufopen"
+.It Sy ctf_bufopen Ta Sy ctf_close
+.It Sy ctf_dup Ta Sy ctf_fdopen
+.It Sy ctf_import Ta Sy ctf_open
+.It Sy ctf_version Ta ""
+.El
+.Ss Type Information
+The following functions relate to iterating type, function, and object
+information and obtaining more details about them.
+.Bl -column -offset indent "ctf_lookup_by_symbol" "ctf_lookup_by_symbol"
+.It Sy ctf_array_info Ta Sy ctf_enum_iter
+.It Sy ctf_enum_name Ta Sy ctf_enum_value
+.It Sy ctf_func_args Ta Sy ctf_func_args_by_id
+.It Sy ctf_func_info Ta Sy ctf_func_info_by_id
+.It Sy ctf_function_iter Ta Sy ctf_kind_name
+.It Sy ctf_lookup_by_name Ta Sy ctf_lookup_by_symbol
+.It Sy ctf_member_info Ta Sy ctf_member_iter
+.It Sy ctf_object_iter Ta Sy ctf_string_iter
+.It Sy ctf_symbol_name Ta Sy ctf_type_align
+.It Sy ctf_type_cmp Ta Sy ctf_type_cname
+.It Sy ctf_type_compat Ta Sy ctf_type_encoding
+.It Sy ctf_type_iter Ta Sy ctf_type_kind
+.It Sy ctf_type_lname Ta Sy ctf_type_name
+.It Sy ctf_type_pointer Ta Sy ctf_type_qname
+.It Sy ctf_type_reference Ta Sy ctf_type_resolve
+.It Sy ctf_type_size Ta Sy ctf_type_visit
+.El
+.Ss CTF Container Information Functions
+The following functions return information about the CTF container
+itself.
+This is information that is not related to the types themselves.
+.Bl -column -offset indent "ctf_setspecific" "ctf_setspecific"
+.It Sy ctf_dataptr Ta Sy ctf_flags
+.It Sy ctf_getmodel Ta Sy ctf_getspecific
+.It Sy ctf_label_info Ta Sy ctf_label_iter
+.It Sy ctf_label_topmost Ta Sy ctf_max_id
+.It Sy ctf_nr_syms Ta Sy ctf_parent_file
+.It Sy ctf_parent_label Ta Sy ctf_parent_name
+.It Sy ctf_setspecific Ta ""
+.El
+.Ss Creation Functions
+The following functions are all related to the act of creating dynamic
+CTF containers.
+.Bl -column -offset indent "ctf_add_enumerator" "ctf_add_enumerator"
+.It Sy ctf_add_array Ta Sy ctf_add_const
+.It Sy ctf_add_enum Ta Sy ctf_add_enumerator
+.It Sy ctf_add_float Ta Sy ctf_add_forward
+.It Sy ctf_add_funcptr Ta Sy ctf_add_function
+.It Sy ctf_add_integer Ta Sy ctf_add_label
+.It Sy ctf_add_member Ta Sy ctf_add_object
+.It Sy ctf_add_pointer Ta Sy ctf_add_restrict
+.It Sy ctf_add_struct Ta Sy ctf_add_type
+.It Sy ctf_add_typedef Ta Sy ctf_add_union
+.It Sy ctf_add_volatile Ta Sy ctf_create
+.It Sy ctf_delete_type Ta Sy ctf_discard
+.It Sy ctf_set_array Ta Sy ctf_set_root
+.It Sy ctf_set_size Ta Sy ctf_setmodel
+.It Sy ctf_update Ta ""
+.El
+.Ss Conversion Functions
+The following functions are all used for converting other debug data
+into CTF.
+.Bl -column -offset indent "ctf_elfconvert" "ctf_elfconvert"
+.It Sy ctf_elfconvert Ta Sy ctf_fdconvert
+.El
+.Ss Diffing and Merging
+The following functions are related to understanding the differences
+between CTF containers and merging them together.
+.Bl -column -offset indent "ctf_merge_set_nthreads" "ctf_merge_set_nthreads"
+.It Sy ctf_diff_fini Ta Sy ctf_diff_functions
+.It Sy ctf_diff_getflags Ta Sy ctf_diff_init
+.It Sy ctf_diff_objects Ta Sy ctf_diff_setflags
+.It Sy ctf_diff_types Ta Sy ctf_merge_add
+.It Sy ctf_merge_dedup Ta Sy ctf_merge_fini
+.It Sy ctf_merge_init Ta Sy ctf_merge_label
+.It Sy ctf_merge_merge Ta Sy ctf_merge_set_nthreads
+.It Sy ctf_merge_uniquify Ta ""
+.El
+.Ss Output Functions
+The following functions are used to write CTF data into its on-disk
+representation.
+.Bl -column -offset indent "ctf_elffdwrite" "ctf_elffdwrite"
+.It Sy ctf_elffdwrite Ta Sy ctf_elfwrite
+.It Sy ctf_write Ta ""
+.El
+.Ss Errors
+These functions relate to obtaining and understanding error information.
+.Bl -column -offset indent "ctf_errmsg" "ctf_errmsg"
+.It Sy ctf_errmsg Ta Sy ctf_errno
+.El
+.Sh TYPES
+The
+.Nm
+library defines the following types that are used throughout the
+library:
+.Ss ctf_file_t
+The
+.Ft ctf_file_t
+is an opaque structure that represents a CTF container and is the
+primary handle to the library.
+Each
+.Ft ctf_file_t
+is independent and can be operated on in parallel.
+See the
+.Sx Locking
+section for more information.
+.Ss ctf_id_t
+The
+.Ft ctf_id_t
+represents a type identifier which refers to a specific type in a
+.Ft ctf_file_t .
+The CTF IDs between different containers have no relationship to one
+another.
+In other words, if an ID refers to an
+.Ft uint32_t
+in one container, it likely has an entirely different meaning in
+another.
+.Pp
+In invalid type ID is often represented by the value
+.Dv CTF_ERR .
+.Pp
+The
+.Ft ctf_id_t
+should be thought of like one thinks of an opaque handle.
+There is no guarantee that the ID that is returned will be the same
+between two different versions of the library.
+.Ss ctf_sect_t
+The
+.Ft ctf_sect_t
+structure is used with the
+.Ft ctf_bufopen
+function and defines one of the ELF memory sections that the function
+takes.
+The structure is defined as follows:
+.Bd -literal -offset indent
+typedef struct ctf_sect {
+        const char *cts_name;   /* section name (if any) */
+        ulong_t cts_type;       /* section type (ELF SHT_... value) */
+        ulong_t cts_flags;      /* section flags (ELF SHF_... value) */
+        const void *cts_data;   /* pointer to section data */
+        size_t cts_size;        /* size of data in bytes */
+        size_t cts_entsize;     /* size of each section entry (symtab only) */
+        off64_t cts_offset;     /* file offset of this section (if any) */
+} ctf_sect_t;
+.Ed
+.Pp
+The
+.Ft cts_name
+member should be set to the name of ELF section, if it has one.
+For example,
+.Qq .SUNW_ctf ,
+.Qq .symtab ,
+or
+.Qq .strtab .
+.Pp
+The
+.Ft cts_type ,
+.Ft cts_flags ,
+and
+.Ft cts_offset
+members should refer to the ELF section's type, flags, and offset
+respectively.
+These are usually taken from the section's header which can be obtained
+through functions such as
+.Xr gelf_getshdr 3ELF .
+The
+.Ft cts_entsize
+represents the size of each element in the data section.
+This should only be set if this information represents the symbol table,
+in which case it should be set to the size of a symbol table entry.
+For all other sections, this should be set to zero.
+.Pp
+The
+.Ft cts_data
+member should point to a buffer that contains the ELF section's data.
+The
+.Ft cts_size
+member indicates how many bytes are valid, starting from the
+.Ft cts_data
+pointer.
+.Ss ctf_encoding_t
+The
+.Ft ctf_encoding_t
+structure is used to describe how integers and floating point values are
+encoded.
+This combines information about their size, whether or not they're
+signed, or the IEEE floating point type.
+The structure is defined as follows:
+.Bd -literal -offset indent
+typedef struct ctf_encoding {
+        uint_t cte_format;      /* data format, CTF_INT_*/CTF_FP_* flags */
+        uint_t cte_offset;      /* offset of value in bits */
+        uint_t cte_bits;        /* size of storage in bits */
+} ctf_encoding_t;
+.Ed
+.Pp
+The
+.Ft cte_format
+member describes the format of the integer or floating point value.
+The meaning of the field varies depending on the kind of type as
+returned from the
+.Ft ctf_type_kind
+function.
+For a full expalanation and list of all of the valid flags in
+.Ft cte_format ,
+please see the
+.Sy Encoding of Integers
+and
+.Sy Encoding of Floats
+section of
+.Xr ctf 4 .
+.Pp
+The
+.Ft cte_bits
+member describes the size of the storage of the type in
+.Em bits .
+The
+.Ft cte_offset
+member descries the offset in bits from the start of the type to its
+value.
+This is generally set to zero.
+.Ss ctf_membinfo_t
+The
+.Ft ctf_membinfo_t
+structure is used to describe a member of a either a structure or a
+union.
+It has the following definition:
+.Bd -literal -offset indent
+typedef struct ctf_membinfo {
+        ctf_id_t ctm_type;      /* type of struct or union member */
+        ulong_t ctm_offset;     /* offset of member in bits */
+} ctf_membinfo_t;
+.Ed
+.Pp
+The
+.Ft ctm_type
+member has the
+.Ft ctf_id_t
+of the member of the structure.
+This can be used to then look up information about the member's type.
+The
+.Ft ctm_offset
+member describes the offset of that member from the start of the
+structure or union.
+This value is measured in
+.Em bits .
+Note, for unions, the value in
+.Ft ctm_offset
+will generally be zero.
+.Ss ctf_arinfo_t
+The
+.Ft ctf_arinfo_t
+structure is used to describe the contents of an array.
+The structure is defined as follows:
+.Bd -literal -offset indent
+typedef struct ctf_arinfo {
+        ctf_id_t ctr_contents;  /* type of array contents */
+        ctf_id_t ctr_index;     /* type of array index */
+        uint_t ctr_nelems;      /* number of elements */
+} ctf_arinfo_t;
+.Ed
+.Pp
+The
+.Ft ctr_contents
+member contains the
+.Ft ctf_id_t
+of the type of the array's contents.
+For example, if one had an array that was defined as
+.Sq int foo[24] ,
+the identifier in
+.Ft ctr_contents
+would be the type identifier of the
+.Ft int
+type.
+.Pp
+The
+.Ft ctr_index
+member on the other hand refers to a type that describes the size of the
+index.
+In general, this is always a standard integer type.
+.Pp
+The
+.Ft ctr_nelems
+member describes how many elements the array is defined to have.
+A C99 flexible array member would have the number of elements set to
+zero.
+.Ss ctf_funcinfo_t
+The
+.Ft ctr_funcinfo_t
+structure is used to describe the properties of a function.
+The structure is defined as follows:
+.Bd -literal -offset indent
+typedef struct ctf_funcinfo {
+        ctf_id_t ctc_return;    /* function return type */
+        uint_t ctc_argc;        /* number of typed arguments to function */
+        uint_t ctc_flags;       /* function attributes (see below) */
+} ctf_funcinfo_t;
+.Ed
+.Pp
+The
+.Ft ctf_return
+member contains the type identifier of the type that the function
+returns.
+A function that has a
+.Sq void
+return type will still have a valid type identifier in it.
+.Pp
+The
+.Ft ctc_argc
+member has the number of arguments that have explicit types that the
+function takes.
+A function that has a variable argument list will not consider the
+variable argument in the count.
+.Pp
+The
+.Ft ctc_flags
+member has different flags that describe the function's parameters.
+Flags should be compared in a bit-wise manner.
+The following flags are currently defined:
+.Bl -tag -offset indent -width CTF_FUNC_VARARG
+.It Dv CTF_FUNC_VARARG
+This flag indicates that the function has a variable argument list.
+.El
+.Ss ctf_lblinfo_t
+The
+.Ft ctf_lblinfo_t
+describes additional information about a label.
+The structure is defined as follows:
+.Bd -literal -offset indent
+typedef struct ctf_lblinfo {
+        ctf_id_t ctb_typeidx;   /* last type associated with the label */
+} ctf_lblinfo_t;
+.Ed
+.Pp
+The
+.Ft ctb_typeidx
+member describes the last type that is associated with a label in a CTF
+container.
+While most containers only have a single label, it is possible for
+multiple labels to cover a range that starts at the end of the previous
+label and ends at the type referred to in
+.Ft ctb_typeidx .
+.Ss ctf_diff_t
+The
+.Ft ctf_diff_t
+structure is an opaque structure that is used as part of the various
+routines that determine differences in CTF containers.
+.Ss ctf_merge_t
+The
+.Ft ctf_merge_t
+structure is an opaque structure that is used as part of the various
+routines that merge CTF containers.
+.Sh ERRORS
+Functions that operate on the
+.Ft ctf_file_t
+handle generally return an integer or a pointer.
+In the case of an error, the NULL pointer or the integer
+.Dv CTF_ERR
+is used to indicate an error.
+In such cases, a more detailed error is stored on the
+.Ft ctf_file_t
+handle structure which can be accessed using the
+.Fn ctf_errno
+function.
+An error can then be transformed into a corresponding message
+.Pq like Xr strerror 3C
+by using the function
+.Fn ctf_errmsg .
+.Pp
+The following is a list of errors that the library may return in
+addition to any of the standard operating system errors, such as
+.Er EINVAL ,
+that are documented in
+.Xr Intro 2 .
+The list of errors may be extended in future revisions of the library,
+so applications should handle the fact that an error listed below may
+not be returned.
+.Bl -tag -offset indent -width "ECTF_NOLABELDATA"
+.It Er ECTF_FMT
+This error indicates that the library tried to find CTF data in a file,
+but the file was neither a raw CTF container or was an ELF objct.
+The CTF library can only find CTF in raw CTF containers or ELF objects.
+.It Er ECTF_ELFVERS
+This error indicates that the ELF file has an ELF version that the
+.Nm
+library does not know how to work with.
+.It Er ECTF_CTFVERS
+This error indicates that the CTF data found is encoded using a version
+that the library doesn't know how to interpret or understand.
+.It Er ECTF_ENDIAN
+This error indicates that the ELF object that contains the CTF data is
+in a different endian encoding than the library currently supports.
+Today, the library can only decode CTF data that uses the same endian
+encoding as the underlying host.
+For more information about endian encodings, see
+.Xr endian 5 .
+.It Er ECTF_SYMTAB
+This error indicates that the encoding of symbols in the symbol table is
+of an invalid size and the library cannot process it.
+.It Er ECTF_SYMBAD
+This error indicates that the library was unable to find, open, or
+process the symbol table from the ELF object.
+.It Er ECTF_STRBAD
+This error indicates that the library was unable to find, open, or
+process the string table from the ELF object.
+.It Er ECTF_CORRUPT
+This error indicates that something about the underlying CTF data is
+corrupt and the data is no longer consistent.
+Examples of corruption include, the offsets in the CTF header are not
+aligned correctly, are not in the proper order, or refer to something
+beyond the end of the file, a cycle in type definitions, invalid ELF
+section indexes, bad labels, and more.
+.It Er ECTF_NOCTFDATA
+This error indicates that an ELF object contains no CTF data.
+.It Er ECTF_NOCTFBUF
+This error indicates that no CTF data could be found in a buffer that
+was supposed to contain CTF data.
+.It Er ECTF_NOSYMTAB
+This error indicates that the symbol table data is missing.
+This may be because the symbol table was not present in the underlying
+ELF object because it was stripped or when using the
+.Fn ctf_bufopen
+function, a symbol table was not provided.
+.It Er ECTF_NOPARENT
+This error indicates that the CTF container is a child container
+.Po
+see
+.Sx CTF Containers
+for more information
+.Pc
+and the parent CTF data has not been imported with the
+.Fn ctf_import
+function.
+The type information required to complete the request is only present in
+the parent.
+.It Er ECTF_DMODEL
+This error indicates that there is a mismatch in the process data model
+between two containers.
+This can happen when importing one container into another or when
+merging.
+The most common explanation is that one is mixing CTF containers
+belonging to both 32-bit and 64-bit objects.
+.It Er ECTF_MMAP
+This error indicates that the library was unable to memory map one of
+the required data sections for the underlying CTF container.
+.It Er ECTF_ZMISSING
+This error indicates that the CTF data has been compressed and the zlib
+decompression library could not be found.
+.It Er ECTF_ZINIT
+This error indicates that the CTF data has been compressed and the zlib
+library could not be opened and initialized.
+.It Er ECTF_ZALLOC
+This error indicates that the CTF data has been compressed and the
+library was unable to allocate all of the memory it required for
+decompressing the CTF data.
+.It Er ECTF_DECOMPRESS
+This error indicates that the CTF data has been compressed and the zlib
+library encountered an error while trying to decompress the data.
+.It Er ECTF_STRTAB
+This error indicates that the library did not have access to the
+string table that contained information about the name.
+This may refer to either the ELF or CTF string tables.
+.It Er ECTF_BADNAME
+This error indicates that the information related to the name in one of
+the symbol tables is corrupt and cannot be found in the corresponding
+string table.
+.It Er ECTF_BADID
+This error indicates that a passed in type identifier
+.Pq Vt ctf_id_t
+is not a valid identifier.
+.It Er ECTF_NOTSOU
+This error indicates that an action was taken on a type that was not a
+structure or union, but had to be.
+This might occur, for example, when trying to set the size of a
+structure or iterating over the members.
+.It Er ECTF_NOTENUM
+This error indicates that an action was taken that requires a type to be
+an enum; however, the passed in type was not.
+.It Er ECTF_NOTSUE
+This error indicates that an action was taken that requires a type to be
+an enum, struct, or union; however, the passed in type was not.
+.It Er ECTF_NOTINTFP
+This error indicates that an action was taken that requires a type to be
+either an integer or floating point type; however, the passed in type
+was not.
+.It Er ECTF_NOTARRAY
+This error indicates that an action was taken that requires a type to be
+an array; however, the passed in type was not.
+.It Er ECTF_NOTREF
+This error indicates that an action was taken that requires a type to be
+a reference type, a typedef, volatile, const, or restrict type; however,
+the passed in type was not.
+.It Er ECTF_NAMELEN
+This error indicates that the buffer passed in to try and hold a type's
+name was too small.
+.It Er ECTF_NOTYPE
+This error indicates that there was no type corresponding to a passed in
+name or that while trying to find a pointer to the given type, that it
+did not exist.
+.It Er ECTF_SYNTAX
+This error indicates that while trying to look up a type by name, there
+was a syntax error in the name.
+.It Er ECTF_NOTFUNC
+This error indicates that information about a function was requested or
+an attempt to add a function occurred where the symbol table indicates
+that the corresponding symbol is not a function.
+For example, asking about function information for an object.
+.It Er ECTF_NOFUNCDAT
+This error indicates that there is no type information available for the
+requested function.
+.It Er ECTF_NOTDATA
+This error indicates that information about a data object was requested
+or an attempt to add a data object occurred where the symbol table
+indicates that the corresponding symbol is not a data object.
+.It Er ECTF_NOTYPEDAT
+This error indicates that there is no type information available for the
+requested data object.
+.It Er ECTF_NOLABEL
+This error indicates that a requested label could not be found or that a
+label is missing.
+.It Er ECTF_NOLABELDATA
+This error indicates that the CTF container does not conntain ay labels.
+Labels were introduced in the CTF container format version 2.
+If the CTF container is prior to version two, then
+.Er ECTF_NOTSUP
+will be returned instead.
+.It Er ECTF_NOTSUP
+This error indicates that the requested functions could not be completed
+because the CTF container version is from before the information
+requested could be provided.
+.It Er ECTF_NOENUMNAM
+This error indicates that there is no enumeration constant in the
+specified enum that matches the requested name or the requested value.
+.It Er ECTF_NOMEMBNAM
+This error indicates that there is no member with the specified name in
+the struct or union.
+.It Er ECTF_RDONLY
+This error indicates that an attempt was made to add or modify a CTF
+container that is read-only.
+.It Er ECTF_DTFULL
+This error indicates that the maximum number of members in a structure
+or union or enumeration values in an enumeration has been reached and no
+more will fit.
+.It Er ECTF_FULL
+This error indicates that the maximum number of types that can fit into
+a CTF container has been reached.
+.It Er ECTF_DUPMEMBER
+This error indicates that a structure or union member or an enumeration
+value with the specified name already exists in the type.
+All the members of a given type must have unique names.
+.It Er ECTF_CONFLICT
+This error indicates that when adding a type a conflict has occurred
+because there is already a type of a similar kind in the CTF container
+that is slightly different in some way.
+.It Er ECTF_REFERENCED
+This error indicates that the dynamic type that was asked to be deleted
+could not be deleted because has outstanding references or the CTF
+container has been imported as a parent into another one.
+A type may be added because another type refers to it.
+One example is a pointer to another type.
+While the pointer type exists, the underlying type cannot be removd.
+.It Er ECTF_NOTDYN
+This error indicates that something attempted to modify a type that was
+not a dynamic type.
+Non-dynamic types cannot be changed or deleted.
+.It Er ECTF_ELF
+This error indicates the the underlying ELF library,
+.Xr libelf 3LIB ,
+failed.
+.It Er ECTF_MCHILD
+This error indicates that there was an attempt to merge a container that
+is currently a child container.
+A child container will have already been merged when uniquifying it and
+therefore cannot be merged again.
+.It Er ECTF_LABELEXISTS
+This error indicates that there was an attempt to add a label to the CTF
+container; however, another label with the same name already exists.
+.It Er ECTF_LCONFLICT
+This error indicates that a merge failed because two containers had
+conficting labels.
+Two CTF containers cannot be merged if they have different labels.
+.It Er ECTF_ZLIB
+This error indicates that a request to write out CTF data that needed to
+be compressed failed because the zlib library encountered a fatal error.
+.It Er ECTF_CONVBKERR
+This error indicates that a request to convert CTF data failed because
+of an error in the conversion backend.
+.It Er ECTF_CONVNOCSRC
+This error indicates that CTF conversion failed because the backend
+could not find any information generated from C source files to convert.
+.It Er ECTF_NOCONVBKEND
+This error indicates that a request to convert CTF data failed because
+no conversion backend could perform conversion.
+This usually indicates that the data to convert is in a format the
+library does not currently understand.
+.El
+.Sh LOCKING
+Most functions operate on a handle to a CTF container in the form of a
+.Ft ctf_handle_t * .
+Unless otherwise indicated, the library does not provide any
+synchronization for different routines that are operating on the
+.Sy same CTF handle .
+It is up to the caller of such functions to ensure that the only a
+single thread is using a given CTF handle at a given time.
+Multiple threads may call
+.Nm
+library routines at the same time as long as each thread is using a
+different handle.
+.Pp
+Each individual function notes its thread safety in the
+.Sy MT-Level
+section of its individual manual page.
+The MT-Level
+of a routine that matches the above description will refer to this
+manual page.
+If it does not, then it refers to the standard levels defined in
+.Xr attributes 5 .
+.Sh INTERFACE STABILITY
+.Sy Private
+.Pp
+The
+.Nm
+library is not a stable interface and should not relied on for any
+purposes as it is subject to change its API and ABI at any time.
+Only software that is part of illumos should link against it.
+.Sh SEE ALSO

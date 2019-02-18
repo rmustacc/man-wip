@@ -1,0 +1,188 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_FUNC_INFO 3CTF
+.Os
+.Sh NAME
+.Nm ctf_func_info ,
+.Nm ctf_func_info_by_id ,
+.Nm ctf_func_args ,
+.Nm ctf_func_args_by_id
+.Nd get function information and arguments
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft int
+.Fo ctf_func_info
+.Fa "ctf_file_t *fp"
+.Fa "ulong_t symidx"
+.Fa "ctf_funcinfo_t *fip"
+.Fc
+.Ft int
+.Fo ctf_func_info_by_id
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "ctf_funcinfo_t *fip"
+.Fc
+.Ft int
+.Fo ctf_func_args
+.Fa "ctf_file_t *fp"
+.Fa "ulong_t symidx"
+.Fa "uint_t argc"
+.Fa "ctf_id_t *argv"
+.Fc
+.Ft int
+.Fo ctf_func_args_by_id
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "uint_t argc"
+.Fa "ctf_id_t *argv"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_func_info
+and
+.Fn ctf_func_info_by_id
+function looks up detailed information about a function type in the CTF
+container
+.Fa fp
+and return additional information about its arguments.
+.Pp
+The
+.Fn ctf_func_info
+function looks up the function information based on its symbol table
+index
+.Fa symidx
+while the
+.Fn ctf_func_info_by_id
+function looks up the function information based on its type id ,
+.Fa type.
+.Pp
+In both cases, if the information is found, the information about the
+function's return type, the number of arguments it takes, and whether it
+has a variable argument list are returned in the structure
+.Fa fip .
+The structure definition is defined in the
+.Sy ctf_funcinfo_t
+section of
+.Xr libctf 3LIB .
+.Pp
+The
+.Fn ctf_func_args
+and
+.Fn ctf_func_args_by_id
+functions take a function type and obtain types of its argument list.
+While the
+.Ft ctf_funcinfo_t
+structure contains the number of arguments the function takes, it does
+not contain the types.
+The argument
+.Fa argc
+indicates the number of
+.Ft ctf_id_t
+value that are pointed to by
+.Fa argv .
+Both functions will fill in
+.Fa argv
+with the types of the arguments list.
+Only the minimum of the function's argument list length
+and
+.Fa argc
+will be filled in.
+If
+.Fa argc
+is less than the length of the function's argument list, then only
+.Fa argc
+entries will be filled in.
+Conversely, if
+.Fa argc
+is larger, then not all of them will be filled in.
+.Pp
+When trying to obtain the argument list, one generally calls either
+.Fn ctf_func_info
+or
+.Fn ctf_func_info_by_id
+first and then uses the information in
+.Fa fip
+to properly call
+.Fn ctf_func_args
+or
+.Fn ctf_func_args_by_id .
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_func_info ,
+.Fn ctf_func_info_by_id ,
+.Fn ctf_func_args ,
+and
+.Fn ctf_func_args_by_id
+functions return
+.Sy 0 .
+Otherwise,
+.Dv CTF_ERR
+is returned and a more detailed error is available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+The
+.Fn ctf_func_info ,
+and
+.Fn ctf_func_args
+functions will fail if:
+.Bl -tag -width Er
+.It Er ECTF_CORRUPT
+The internal symbol to type mapping does not refer to a function type.
+.It Er ECTF_NOFUNCDAT
+There is no mapping for the specified symbol table entry.
+.It Er ECTF_NOSYMTAB
+There is no symbol table present so the library cannot look up the type.
+.It Er ECTF_NOTFUNC
+The symbol table entry
+.Fa symidx
+is not a function.
+.It Er EINVAL
+The symbol table entry index is larger than the number of symbols
+present.
+.El
+.Pp
+The
+.Fn ctf_func_info_by_id
+and
+.Fn ctf_func_args_by_id
+functions will fail if:
+.Bl -tag -width Er
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type in
+.Fa fp .
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+belongs to a parent CTF container that has not been imported with a call
+to
+.Xr ctf_import 3CTF .
+.It Er ECTF_NOTFUNC
+The type identifier
+.Fa type
+is a valid type; however, it is not a function.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

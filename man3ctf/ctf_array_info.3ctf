@@ -1,0 +1,86 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_ARRAY_INFO 3CTF
+.Os
+.Sh NAME
+.Nm ctf_array_info
+.Nd get information about an array
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft int
+.Fo ctf_array_info
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "ctf_arinfo_t *arp"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_array_info
+function obtains more detailed information about the array indicated by
+the type identifier
+.Fa type
+in the CTF container
+.Fa fp .
+.Pp
+The number of elements in the array, the type of each element, and the
+type that describes the index, are all filled into the
+.Fa arp
+member.
+A full description of the members of the
+.Ft ctf_arinfo_t
+structure are provided in the
+.Sy ctf_arinfo_t
+section of
+.Xr libctf 3LIB .
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_array_info
+function returns
+.Sy 0
+and fills in
+.Fa arp .
+Otherwise,
+.Dv CTF_ERR
+is returnd and an error can be obtained through
+.Xr ctf_errno 3CTF .
+.Sh ERRORS
+The
+.Fn ctf_array_info
+function will fail if:
+.Bl -tag -width Er
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type.
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+belongs to a parent CTF container that has not been imported with a call
+to
+.Xr ctf_import 3CTF .
+.It Er ECTF_NOTARRAY
+The type identifier
+.Fa type
+is a valid type; however, it is not an array.
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

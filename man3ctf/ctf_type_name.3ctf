@@ -1,0 +1,165 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_TYPE_NAME 3CTF
+.Os
+.Sh NAME
+.Nm ctf_type_name ,
+.Nm ctf_type_cname ,
+.Nm ctf_type_qname ,
+.Nm ctf_type_lname
+.Nd obtain the name of a type
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft "char *"
+.Fo ctf_type_name
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "char *buf"
+.Fa "size_t len"
+.Fc
+.Ft "char *"
+.Fo ctf_type_cname
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "char *buf"
+.Fa "size_t len"
+.Fa "const char *cname"
+.Fc
+.Ft ssize_t
+.Fo ctf_type_lname
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "char *buf"
+.Fa "size_t len"
+.Fc
+.Ft "char *"
+.Fo ctf_type_qname
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "char *buf"
+.Fa "size_t len"
+.Fa "const char *qname"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_type_name ,
+.Fn ctf_type_cname ,
+.Fn ctf_type_lname ,
+and
+.Fn ctf_type_qname
+functions all look up the name of the type identifier
+.Fa type
+in the CTF container
+.Fa fp
+and place it in the buffer
+.Fa buf .
+.Pp
+The size of the buffer
+.Fa buf
+is determined by
+.Fa len .
+If the buffer is of an insufficient size, then the contents of
+.Fa buf
+are undefined, though may have been partially written, and an error will
+be indicated.
+.Pp
+The
+.Fn ctf_type_cname
+variant exists to try and format the type name as though it were a C
+declaration.
+The argument
+.Fa cname
+is treated as part of the name of the type and will be inserted in the
+proper place in the type's name as though it were being declared in a C
+programming language source file.
+.Pp
+The
+.Fn ctf_type_lname
+variant exists to indicate how many bytes the full name does take up.
+An error should be checked for with this version as though one were
+calling
+.Xr snprintf 3C .
+.Pp
+The
+.Fn ctf_type_qname
+variant exists to qualify the name of the type.
+This is generally used to indicate a module that the type is coming
+from.
+This is similar to indicate the shared object that a function is from.
+The argument
+.Fa qname
+is used as the qualified name to insert.
+The grave accent character,
+.Sq `
+will be inserted between the types name and the qualified name.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_type_name ,
+.Fn ctf_type_qname ,
+and
+.Fn ctf_type_cname
+functions return a pointer to
+.Fa buf
+with the filled in type name.
+Otherwise,
+.Dv NULL
+is returned and a more detailed error is available through the
+.Xr ctf_errno 3CTF
+function.
+.Pp
+Upon successful completion, the
+.Fn ctf_type_lname
+function returns the number of bytes that it would have written into
+.Fa buf .
+If the return value is less than the size of
+.Fa buf ,
+then the contents of
+.Fa buf
+contain the full name of the type.
+Otherwise,
+.Dv CTF_ERR
+is returned to indicate an error occurred and a more detailed error is
+available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+.It Er EAGAIN
+The library was unable to allocate the required memory.
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type in
+.Fa fp .
+.It Er ECTF_NAMELEN
+The buffer
+.Fa buf
+was not large enough to hold the name of the type
+.Fa type .
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+or a referenced type belongs to a parent CTF container that has not been
+imported with a call to
+.Xr ctf_import 3CTF .
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

@@ -1,0 +1,122 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_ENUM_NAME 3CTF
+.Os
+.Sh NAME
+.Nm ctf_enum_name ,
+.Nm ctf_enum_value
+.Nd obtain enumeration name and values
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft "const char *"
+.Fo ctf_enum_name
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "int value"
+.Fc
+.Ft int
+.Fo ctf_enum_value
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "const char *name"
+.Fa "int *valp"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_enum_name
+function looks of the enumeration constant with the value
+.Fa value
+in the enum type
+.Fa type
+that is part of the CTF container
+.Fa fp
+and returns the name of that consant.
+The name is the string of characters used to identify that enumration
+value in a C programming language source file.
+.Pp
+The
+.Fn ctf_enum_value
+function looks up the enumeration constant with the name
+.Fa name
+in the enum type
+.Fa type
+that is part of the CTF container
+.Fa fp
+and returns the corresponding value of the enumeration constant in
+.Fa valp .
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_enum_name
+function returns a character string with the enumeration constant's
+name.
+Otherwise,
+.Dv NULL
+is returned and a more detailed error is available through the
+.Xr ctf_errno 3CTF
+function.
+.Pp
+Upon successful completion, the
+.Fn ctf_enum_value
+function returns
+.Sy 0
+and fills in
+.Fa valp
+with the value of the enumeration constant.
+Otherwise
+.Dv CTF_ERR
+is returned and a more detailed error is available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+The
+.Fn ctf_enum_name
+and
+.Fn ctf_enum_value
+functions will fail if:
+.Bl -tag -width Er
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type in
+.Fa fp .
+.It Er ECTF_CORRUPT
+A cycle was encountered while trying to resolve the type identifier
+.Fa type .
+.It Er ECTF_NOENUMNAM
+There was no enumeration constant that could be identified by either
+.Fa name
+or
+.Fa value .
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+belongs to a parent CTF container that has not been imported with a call
+to
+.Xr ctf_import 3CTF .
+.It Er ECTF_NOTENUM
+The type identifier
+.Fa type
+is a valid type; however, it is not an enum.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

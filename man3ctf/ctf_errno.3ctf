@@ -1,0 +1,91 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_ERRNO 3CTF
+.Os
+.Sh NAME
+.Nm ctf_errno ,
+.Nm ctf_errmsg
+.Nd obtain ctf error numbers and messages
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft int
+.Fo ctf_errno
+.Fa "ctf_file_t *fp"
+.Fc
+.Ft "const char *"
+.Fo ctf_errmsg
+.Fa "int error"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_errno
+function retries the most recent error that occurred on the handle
+.Fa fp .
+Once an error has been indicated by the library on a specific handle,
+one may call the
+.Fn ctf_errno
+function to retrieve it.
+It will remain valid until the next library function is called on that
+handle.
+Unless a library error returned an error, then the error number returned
+may not be valid.
+The returned error number may be a traditional error number set by the
+operating system as documented in
+.Xr Intro 2
+or it may be one of the CTF library specific errors as documented in the
+.Sy ERRORS
+section of
+.Xr libctf 3LIB .
+.Pp
+The
+.Fn ctf_errmsg
+function returns a human readable string that describes the error
+returned from the
+.Fn ctf_errmsg
+function or as an error from the
+.Xr ctf_open 3CTF
+family of functions.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_errno
+function returns the most recent error condition that occurred.
+.Pp
+Upon successful completion, the
+.Fn ctf_errmsg
+returns a message that describes the error.
+Otherwise, it returns a valid character string.
+.Sh ERRORS
+No errors are defined for either the
+.Fn ctf_errno
+or
+.Fn ctf_errmsg
+function.
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+For the
+.Fn ctf_errno
+function, see
+.Sy LOCKING
+in
+.Xr libproc 3LIB .
+.Pp
+The
+.Fn ctf_errmsg
+function is
+.Sy MT-Safe .
+.Sh SEE ALSO
+.Xr libctf 3LIB

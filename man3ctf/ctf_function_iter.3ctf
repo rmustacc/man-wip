@@ -1,0 +1,103 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_FUNCTION_ITER 3CTF
+.Os
+.Sh NAME
+.Nm ctf_function_iter
+.Nd iterate over functions in a CTF container
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Vt typedef int ctf_function_f(const char *name, ulong_t symidx, ctf_funcinfo_t *fip, void *arg) ;
+.Ft int
+.Fo ctf_function_iter
+.Fa "ctf_file_t *fp"
+.Fa "ctf_function_f *func"
+.Fa "void *arg"
+.Sh DESCRIPTION
+The
+.Fn ctf_function_iter
+function iterates over all of the functions defined in the symbol table
+referenced by the CTF container
+.Fa fp .
+.Pp
+For each function, the callback function
+.Fa func
+is caled with four arguments.
+.Fa name
+contains the name of the function, if the string table is available.
+Otherwise, it is passed as
+.Dv NULL .
+.Fa symidx
+is the function's symbol table entry.
+.Fa fip
+is the filled in function information.
+The structure is defined in the
+.Sy ctf_funcinfo_t
+section of
+.Xr libctf 3LIB .
+Finally, the callback function is given the user supplied argument,
+.Fa arg .
+.Pp
+The return value of
+.Fa func
+determines whether or not the iteration continues.
+If
+.Fa func
+returns
+.Sy 0 ,
+then the iteration will continue.
+However, if
+.Fa func
+returns a non-zero value then the iteration will stop and that value
+will be used as the return value from the
+.Fn ctf_function_iter
+function.
+Because the
+.Fn ctf_function_iter
+function returns
+.Dv CTF_ERR
+on an internal error, it is recommended that
+.Fa func
+only return positive values.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_function_iter
+function returns the return value of
+.Fa func .
+Otherwise, if an internal error occurred
+.Dv CTF_ERR
+is returned and a more detailed error message is available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+The
+.Fn ctf_function_iter
+function will fail if:
+.Bl -tag -width ECTF_NOSYMTAB
+.It Er ECTF_NOSYMTAB
+There is no symbol table associated with
+.Fa fp .
+Functions cannot be iterated over without the symbol table present.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB
