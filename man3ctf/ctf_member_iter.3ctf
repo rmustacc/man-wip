@@ -1,0 +1,117 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 18, 2019
+.Dt CTF_MEMBER_ITER 3CTF
+.Os
+.Sh NAME
+.Nm ctf_member_iter
+.Nd iterate members of a structure or union
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Vt typedef int ctf_member_f(const char *name, ctf_id_t mtype, ulong_t bitoff, void *arg) ;
+.Ft int
+.Fo ctf_member_iter
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "ctf_member_f *func"
+.Fa "void *arg"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn ctf_member_iter
+function iterates over all of the members in the structure or union type
+.Fa type
+in the CTF container
+.Fa fp .
+.Pp
+For each member of the structure or union, the callback function
+.Fa func
+is called with four arguments.
+.Fa name
+contains the name of the member.
+.Fa mtype
+is the type identifier of the member that is valid in the same CTF
+container.
+.Fa off
+is the offset of the member from the beginning of the structure or union
+in
+.Em bits .
+Finally, the callback function is given the user supplied argument,
+.Fa arg .
+.Pp
+The return value of
+.Fa func
+determines whether or not the iteration continues.
+If
+.Fa func
+returns
+.Sy 0 ,
+then the iteration will continue.
+However, if
+.Fa func
+returns a non-zero value then the iteration will stop and that value
+will be used as the return value from the
+.Fn ctf_member_iter
+function.
+Because the
+.Fn ctf_member_iter
+function returns
+.Dv CTF_ERR
+on an internal error, it is recommended that
+.Fa func
+only return positive values.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_member_iter
+function returns the return value of
+.Fa func .
+Otherwise, if an internal error occurred
+.Dv CTF_ERR
+is returned and a more detailed error message is available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+The
+.Fn ctf_member_iter
+function will fail if:
+.Bl -tag -width ECTF_NOSYMTAB
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type in
+.Fa fp .
+.It Er ECTF_CORRUPT
+A cycle was encountered while trying to resolve the type identifier
+.Fa type .
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+or a referenced type belongs to a parent CTF container that has not been
+imported with a call to
+.Xr ctf_import 3CTF .
+.It Er ECTF_NOTSOU
+The type identifier
+.Fa type
+is a valid type; however, it is not a structure or union.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

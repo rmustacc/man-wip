@@ -1,0 +1,104 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 19, 2019
+.Dt CTF_MEMBER_INFO 3CTF
+.Os
+.Sh NAME
+.Nm ctf_member_info
+.Nd obtain information about a structure or union member
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft int
+.Fo ctf_member_info
+.Fa "ctf_file_t *fp"
+.Fa "ctf_id_t type"
+.Fa "const char *name"
+.Fa "ctf_membinfo_t *infop"
+.Sh DESCRIPTION
+The
+.Fn ctf_member_info
+fucntion obtains the type and offset of the member named
+.Fa name
+in the structure or union
+.Fa type
+in the CTF container
+.Fa fp .
+.Pp
+Information about the member is placed into the
+.Fa infop
+pointer.
+For the definition of the
+.Ft ctf_membinfo_t
+structure, please see the
+ctf_membinfo_t
+section of
+.Xr libctf 3LIB .
+.Pp
+The
+.Fn ctf_member_info
+function only provides information about members of structures and
+unions.
+For information about enumeration constants in an enum, please see
+.Xr ctf_enum_name 3CTF
+and
+.Xr ctf_enum_value 3CTF .
+.Sh RETURN VALUES
+Upon successful compeletion, the
+.Fn ctf_member_info
+function returns
+.Sy 0 .
+Otherwise,
+.Dv CTF_ERR
+is returned and a more detailed error is available through the
+.Xr ctf_errno 3CTF
+function.
+.Sh ERRORS
+The
+.Fn ctf_member_info
+function will fail if:
+.Bl -tag -width ECTF_NOPARENT
+.It Er ECTF_BADID
+The type identifier
+.Fa type
+does not refer to a valid type in
+.Fa fp .
+.It Er ECTF_CORRUPT
+A cycle was encountered while trying to resolve the type identifier
+.Fa type .
+.It Er ECTF_NOMEMBNAM
+No member with the name
+.Fa name
+was found in the structure or union
+.Fa type .
+.It Er ECTF_NOPARENT
+The type identifier
+.Fa type
+or a referenced type belongs to a parent CTF container that has not been
+imported with a call to
+.Xr ctf_import 3CTF .
+.It Er ECTF_NOTSOU
+The type identifier
+.Fa type
+is a valid type; however, it is not a structure or union.
+.El
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+See
+.Sy LOCKING
+in
+.Xr libctf 3LIB .
+.Sh SEE ALSO
+.Xr libctf 3LIB

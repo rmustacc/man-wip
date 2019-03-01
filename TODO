@@ -102,8 +102,8 @@ x       ctf_func_info_by_id;
 x       ctf_func_info;
 x       ctf_function_iter;
 x       ctf_kind_name;
-        ctf_member_info;
-        ctf_member_iter;
+x       ctf_member_info;
+x       ctf_member_iter;
         ctf_object_iter;
         ctf_string_iter;
         ctf_symbol_name;
@@ -122,13 +122,13 @@ x       ctf_type_qname;
         ctf_type_resolve;
         ctf_type_size;
         ctf_type_visit;
+        ctf_lookup_by_name;
+        ctf_lookup_by_symbol;
 
 # Label information
         ctf_label_info;
         ctf_label_iter;
         ctf_label_topmost;
-        ctf_lookup_by_name;
-        ctf_lookup_by_symbol;
 
 
 Misc. Pages:

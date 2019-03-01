@@ -1,0 +1,338 @@
+.\"
+.\" This file and its contents are supplied under the terms of the
+.\" Common Development and Distribution License ("CDDL"), version 1.0.
+.\" You may only use this file in accordance with the terms of version
+.\" 1.0 of the CDDL.
+.\"
+.\" A full copy of the text of the CDDL should have accompanied this
+.\" source.  A copy of the CDDL is also available via the Internet at
+.\" http://www.illumos.org/license/CDDL.
+.\"
+.\"
+.\" Copyright 2019 Joyent, Inc.
+.\"
+.Dd February 19, 2019
+.Dt CTF_MERGE 3CTF
+.Os
+.Sh NAME
+.Nm ctf_merge ,
+.Nm ctf_merge_init ,
+.Nm ctf_merge_add ,
+.Nm ctf_merge_dedup ,
+.Nm ctf_merge_label ,
+.Nm ctf_merge_merge ,
+.Nm ctf_merge_set_nthreads ,
+.Nm ctf_merge_uniquify ,
+.Nm ctf_merge_fini
+.Nd merge CTF containers together
+.Sh SYNOPSIS
+.Lb libctf
+.In libctf.h
+.Ft "ctf_merge_t *"
+.Fo ctf_merge_init
+.Fa "int symfd",
+.Fa "int *errp"
+.Fc
+.Ft int
+.Fo ctf_merge_add
+.Fa "ctf_merge_t *mergep"
+.Fa "ctf_file_t *input"
+.Fc
+.Ft int
+.Fo ctf_merge_dedup
+.Fa "ctf_merge_t *mergep"
+.Fa "ctf_file_t **outp"
+.Fc
+.Ft int
+.Fo ctf_merge_label
+.Fa "ctf_merge_t *mergep"
+.Fa "const char *label"
+.Fc
+.Ft int
+.Fo ctf_merge_merge
+.Fa "ctf_merge_t *mergep"
+.Fa "ctf_file_t **outp"
+.Fc
+.Ft int
+.Fo ctf_merge_set_nthreads
+.Fa "ctf_merge_t *mergep"
+.Fa "const uint_t nthreads"
+.Fc
+.Ft int
+.Fo ctf_merge_unquify
+.Fa "ctf_merge_t *mergep"
+.Fa "ctf_file_t *unique_base"
+.Fa "const char *pname"
+.Fc
+.Ft void
+.Fo ctf_merge_fini
+.Fa "ctf_merge_t *mergep"
+.Fc
+.Sh DESCRIPTION
+The
+.Nm
+family of functions provide the ability to merge multiple CTF containers
+together into a single one.
+
+.Pp
+The merge process begins by opening a merge handle that refers to the
+ELF object such as an exectuable or shared object that CTF data is being
+merged for.
+This is required so that the object and function type mappings will be
+correct and in line with the symbol table.
+Once a merge handle has been created, various other operations can be
+placed on the handle until a merge is requested.
+These include the following:
+.Bl -bullet
+.It
+Adding additional input files.
+.It
+Setting the number of threads used for the conversion.
+.It
+Setting a label for the conversion.
+.It
+Setting a parent container for uniquification.
+.El
+.Pp
+Once all of these actions have been performed, then one can run a merge
+operation.
+The merge operation will run in parallel based on the number of threads
+specified.
+There are two different merging modes currently supported:
+.Bl -tag -width "Deduplication"
+.It Sy Merging
+When performing a merge, all of the CTF containers added to the merge
+will be combined into a single container, removing duplicate copies of
+identical types in the process.
+.It Sy Deduplication
+The deduplication merge is designed to operate on a single CTF
+container.
+When performing a conversion, some formats end up having duplicate in
+their debug information,
+which performing a deduplication merge can eliminate.
+It is recommended that one of these be performed before doing a normal
+merge and is generally performed implicitly as part of the conversion
+process.
+.El
+.Pp
+Each of these processes returns a newly generated
+.Ft ctf_file_t
+structure that can then later be written out through the
+.Xr ctf_write 3CTF
+family of functions.
+Once the process has been completed, the merge handle should be closed.
+.Ss Fn ctf_merge_init
+The
+.Fn ctf_merge_init
+function is used to begin a new merge.
+The returned
+.Ft ctf_merge_t
+pointer can be used with any of the subsequent operations.
+Each merge handle is independent and can be operated on in parallel.
+.Pp
+The
+.Fa symfd
+argument should be a file descriptor for the output file.
+The file will not be written to during this process; however, its symbol
+table will be used in this process to determine the object and function
+type mappings.
+If no such mapping is required, then the value
+.Sy -1
+should be passed in instead.
+The caller should make sure not to close
+.Fa symfd
+until after the merge resources have been released through the
+.Fn ctf_merge_fini
+function.
+.Pp
+The
+.Fa errp
+argument can be used to obtain a more detailed error message in the
+event of a failure.
+.Ss Fn ctf_merge_add
+The
+.Fa ctf_merge_add
+function is used to add the CTF container
+.Fa input
+as an input file to the merge handle
+.Fa mergep .
+This file will be used when either of the 
+.Fn ctf_merge_merge
+or
+.Fn ctf_merge_dedup
+functions are called.
+.Pp
+It is the callers responsibility to make sure that the input container
+.Fa input
+is valid until the
+.Fn ctf_merge_fini
+function is called.
+Generally, this means that the caller should not call
+.Xr ctf_close 3CTF
+on the CTF container until after the call has finished.
+.Ss Fn ctf_merge_set_nthreads
+The
+.Fn ctf_merge_set_nthreads
+function is used to set the upper bound on the number of threads that
+will be used during the merge operation to the value of
+.Fa nthreads
+for the merge handle
+.Fa mergep .
+Until either the function
+.Fn ctf_merge_merge
+or
+.Fn ctf_merge_dedup
+is called, this functino can be called any number of times on the merge
+handle
+.Fa mergep .
+.Ss Fn ctf_merge_uniquify
+The
+.Fn ctf_merge_uniquify
+function indicates that the resulting merged container should be
+uniquified against the CTF container
+.Fa unique_base .
+The resulting merged container will refer to types in
+.Fa unique_base
+and the resulting container will be considered a child of
+.Fa unique_base.
+.Pp
+The
+.Fa pname
+argument should be a character string that indicates the parent's name.
+Generally, this is the base name
+.Po
+See
+.Xr basename 1
+or
+.Xr basename 3C
+for examples of constructing the base name of a file
+.Pc
+of the underlying file behind
+.Fa unique_base .
+.Pp
+If this is called multiple times on the same merge handle, subsequent
+calls will replace former ones.
+Only a single file may be associated with the merge as a parent.
+.Pp
+If the
+.Fn ctf_merge_uniquify
+function has been called on a handle, then the
+.Fn ctf_merge_dedup
+function should not be called.
+.Ss Fn ctf_merge_label
+The
+.Fn ctf_merge_label
+function sets the label of the resulting merge output from
+.Fa mergep
+to be the string
+.Fa label .
+Only a single label may be associated with the merge operation, only the
+last label set with the
+.Fn ctf_merge_label
+function will be used.
+.Pp
+If a parent has been added by the
+.Fn ctf_merge_uniquify
+function, then its label must match the label passed in as
+.Fa label
+to this function as should all of the labels of input files.
+.Ss Fn ctf_merge_merge
+The
+.Fn ctf_merge_merge
+function performs a merge operation on the handle
+.Fa mergp
+following the manner described as
+.Sq merging
+above.
+The merge will consist of all of the input files added up to that point.
+The resulting CTF container will be returned in
+.Fa outp .
+After this point, the caller is responsible for the resources associated
+with the CTF container returned in
+.Fa outp
+and must eventually free them
+by calling
+.Xr ctf_close 3CTF .
+.Pp
+The merge operation may take a substantial amount of time that increases
+with the number of input files.
+The calling thread is used to perform the merge.
+If additional threads were specified through the
+.Fn ctf_merge_est_nthreads
+function, then that number of threads will be used to perform the merge
+instead.
+.Pp
+Once the merge has been completed, the resulting handle is no longer
+usable and the
+.Fn ctf_merge_fini
+function should be called.
+.Ss Fn ctf_merge_dedup
+The
+.Fn ctf_merge_dedup
+function is identical to the
+.Fn ctf_merge_merge
+function, except that it performs a
+.Sq deduplication
+merge rather than a normal merge as described earlier in the manual.
+.Ss Fn ctf_merge_fini
+The
+.Fn ctf_merge_fini
+function releases all of the resources associated with the merge handle
+.Fa mergep .
+After calling this, any input CTF containers or symbol file descriptor,
+if used, can be closed.
+.Sh RETURN VALUES
+Upon successful completion, the
+.Fn ctf_merge_init
+function returns a handle that can be used for subsequent merge
+operations. Otherwise,
+.Dv NULL
+is returned and a more detailed error is provided in
+.Fa errp .
+.Pp
+Upon successful completion, the
+.Fn ctf_merge_add ,
+.Fn ctf_merge_label ,
+.Fn ctf_merge_set_nthreads ,
+and
+.Fn ctf_merge_uniquify
+functions return
+.Sy 0 .
+Otherwise a non-zero value is returned to indicate that an error
+occurred.
+This is the error that would have normally been returned by a call to
+.Xr ctf_errno 3CTF .
+.Pp
+Upon successful completion, the
+.Fn ctf_merge_merge
+and
+.Fn ctf_merge_dedup
+functions return
+.Sy 0
+and place a new CTF container in
+.Fa outp .
+Otherwise a non-zero value is returned to indicate that an error
+occurred.
+This is the error that would have normally been returned by a call to
+.Xr ctf_errno 3CTF .
+.Sh ERRORS
+The various functions here may fail for any of the reasons listed in
+the
+.Sy ERRORS
+section of
+.Xr libctf 3LIB .
+Some additional errors for the functions are listed below.
+XXX
+.Sh INTERFACE STABILITY
+.Sy Private
+.Sh MT-LEVEL
+A given merge handle may only be operated on by a single thread at any
+given time; however, other threads may operate on different merge
+handles.
+This is similar to the normal locking rules that are described in the
+.Sy LOCKING
+section
+of
+.Xr libctf 3CTF .
+.Sh SEE ALSO
+.Xr libctf 3LIB
